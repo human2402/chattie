@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, ReactNode } from 'react';
 
-interface Manager {
+interface User {
   id: number;
   login: string;
   firstName: string;
@@ -10,8 +10,8 @@ interface Manager {
 
 interface AuthContextType {
   isAuthenticated: boolean;
-  manager: Manager | null;
-  login: (token: string, manager: Manager) => void;
+  user: User | null;
+  login: (token: string, user: User) => void;
   logout: () => void;
 }
 
@@ -33,28 +33,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return token ? isTokenValid(token) : false;
   });
 
-  const [manager, setManager] = useState<Manager | null>(() => {
-    // Retrieve manager info from localStorage if available
-    const storedManager = localStorage.getItem('manager');
-    return storedManager ? JSON.parse(storedManager) : null;
+  const [user, setUser] = useState<User | null>(() => {
+    // Retrieve user info from localStorage if available
+    const storedUser = localStorage.getItem('user');
+    return storedUser ? JSON.parse(storedUser) : null;
   });
 
-  const login = (token: string, manager: Manager) => {
+  const login = (token: string, user: User) => {
     localStorage.setItem('authToken', token);
-    localStorage.setItem('manager', JSON.stringify(manager)); // Store manager info
+    localStorage.setItem('user', JSON.stringify(user)); // Store user info
     setIsAuthenticated(true);
-    setManager(manager);
+    setUser(user);
   };
 
   const logout = () => {
     localStorage.removeItem('authToken');
-    localStorage.removeItem('manager'); // Clear manager info
+    localStorage.removeItem('user'); // Clear user info
     setIsAuthenticated(false);
-    setManager(null);
+    setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, manager, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, user, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

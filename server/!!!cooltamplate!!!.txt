@@ -1,0 +1,63 @@
+// server.mjs (Main entry point)
+import express from "express";
+import cors from "cors";
+import { router } from "./routes.mjs";
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+app.use(cors());
+app.use(express.json());
+app.use("/api", router);
+
+app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+});
+
+// db.mjs (Database connection)
+import sqlite3 from "sqlite3";
+import { open } from "sqlite";
+
+export const db = await open({
+    filename: "database.db",
+    driver: sqlite3.Database
+});
+
+await db.exec(`CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL
+);`);
+
+// models.mjs (Database functions)
+import { db } from "./db.mjs";
+
+export async function getUsers() {
+    return await db.all("SELECT * FROM users");
+}
+
+export async function addUser(name) {
+    return await db.run("INSERT INTO users (name) VALUES (?)", [name]);
+}
+
+// routes.mjs (API routes)
+import express from "express";
+import { getUsers, addUser } from "./models.mjs";
+
+export const router = express.Router();
+
+router.get("/users", async (req, res) => {
+    res.json(await getUsers());
+});
+
+router.post("/users", async (req, res) => {
+    const { name } = req.body;
+    if (!name) return res.status(400).json({ error: "Name is required" });
+    await addUser(name);
+    res.status(201).json({ message: "User added" });
+});
+
+// middlewares.mjs (Optional middlewares)
+export function logger(req, res, next) {
+    console.log(`${req.method} ${req.url}`);
+    next();
+}
