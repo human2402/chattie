@@ -14,6 +14,8 @@ await db.exec(`
         last_name TEXT NOT NULL,
         login TEXT NOT NULL UNIQUE,
         password TEXT NOT NULL,
-        position TEXT
+        position TEXT,
+        department TEXT,
+        is_admin INT DEFAULT 0
     );
 `);

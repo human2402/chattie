@@ -1,4 +1,25 @@
-:root {
+@import "tailwindcss";
+
+body {
+  background-color: rgb(243 244 246);
+}
+
+.bg-blue1 {
+  background-color: #669bbc;
+}
+
+.bg-blue1:hover {
+  background-color: #003049;
+}
+
+.cl-blue1 {
+  color:#003049;
+}
+
+.cl-blue1:hover{
+  color:#669bbc
+}
+/* :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
@@ -65,4 +86,4 @@ button:focus-visible {
   button {
     background-color: #f9f9f9;
   }
-}
+} */
