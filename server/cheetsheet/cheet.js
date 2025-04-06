@@ -32,7 +32,8 @@ await db.exec(`
   CREATE TABLE IF NOT EXISTS messages (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       client_offset TEXT UNIQUE,
-      content TEXT
+      content TEXT,
+      roomName TEXT
   );
 `);
 
@@ -44,13 +45,26 @@ app.get('/', (req, res) => {
 });
 
 io.on('connection', async (socket) => {
-    // console.log('a user connected');
+    let curRoom = ""
 
-    socket.on('chat message', async (msg, clientOffset, callback) => {
+    console.log('Socket connected:', socket.id);
+    
+    socket.on('join room', (roomName, callback) => {
+        if (!socket.rooms.has(roomName)) {
+            console.log(`Socket ${socket.id} is joining room: ${roomName}`);
+            socket.join(roomName);
+            curRoom = roomName
+            callback()
+            restoreChat (db, socket, curRoom)
+        }
+    });
+
+    socket.on('chat message', async (msg, roomName, clientOffset, callback) => {
         let result;
+        console.log ("mes from", socket.id, "to", roomName, ":", msg)
         try {
             // store the message in the database
-            result = await db.run('INSERT INTO messages (content, client_offset) VALUES (?, ?)', msg, clientOffset);
+            result = await db.run('INSERT INTO messages (content, client_offset, roomName) VALUES (?, ?,?)', msg, clientOffset, roomName);
         } catch (e) {
             if (e.errno === 19 /* SQLITE_CONSTRAINT */ ) {
                 // the message was already inserted, so we notify the client
@@ -61,24 +75,28 @@ io.on('connection', async (socket) => {
             return;
         }
         // include the offset with the message
-        io.emit('chat message', msg, result.lastID);
+        curRoom = roomName
+        io.to(roomName).emit('chat message', `${socket.id}: ${msg}`, roomName, result.lastID);
         // acknowledge the event
         callback();
     });
 
-    if (!socket.recovered) {
-        // if the connection state recovery was not successful
+    if (!socket.recovered) { 
+        restoreChat (db, socket, curRoom)
+    }
+
+    async function restoreChat (db, socket, curRoom) {
         try {
-          await db.each('SELECT id, content FROM messages WHERE id > ?',
-            [socket.handshake.auth.serverOffset || 0],
-            (_err, row) => {
-              socket.emit('chat message', row.content, row.id);
-            }
-          )
-        } catch (e) {
-          // something went wrong
-        }
-      }
+            await db.each('SELECT id, roomName, content FROM messages WHERE id > ? AND roomName == ?',
+              [socket.handshake.auth.serverOffset || 0, curRoom],
+              (_err, row) => {
+                socket.emit('chat message', row.content, row.roomName, row.id);
+              }
+            )
+          } catch (e) {
+            console.error(e)
+          }
+    }
 
     // socket.on('disconnect', () => {
     //   console.log('user disconnected');
