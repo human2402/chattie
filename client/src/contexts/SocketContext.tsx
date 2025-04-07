@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect, ReactNode, useContext } from 'react';
+import { createContext, useState, useEffect, ReactNode, useContext, useRef } from 'react';
 import { socket } from '../socket.ts';  // Assuming socket.io client instance
 
 // Type for the context value
@@ -15,8 +15,12 @@ const SocketContext = createContext<SocketContextType | undefined>(undefined);
 export const SocketProvider = ({ children }: { children: ReactNode }) => {
   const [isConnected, setIsConnected] = useState(socket.connected);
   const [fooEvents, setFooEvents] = useState<string[]>([]);
+  const serverOffsetRef = useRef(0);
 
   useEffect(() => {
+    socket.auth = { serverOffset: serverOffsetRef.current };
+    socket.connect();
+
     function onConnect() {
       setIsConnected(true);
     }
@@ -25,8 +29,12 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
       setIsConnected(false);
     }
 
-    function onFooEvent(value: string) {
+    function onFooEvent(value: string, serverOffset?: number) {
       setFooEvents(prev => [...prev, value]);
+      console.log(value, serverOffset)
+      if (serverOffset !== undefined) {
+        serverOffsetRef.current = serverOffset;
+      }
     }
 
     socket.on('connect', onConnect);

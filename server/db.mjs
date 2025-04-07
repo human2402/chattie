@@ -18,4 +18,15 @@ await db.exec(`
         department TEXT,
         is_admin INT DEFAULT 0
     );
+
+    CREATE TABLE IF NOT EXISTS messages (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        client_offset TEXT UNIQUE,
+        content TEXT,
+        roomID INTEGER,
+        authorID INTEGER,
+        timestamp TEXT
+  );
 `);
+
+export default db;

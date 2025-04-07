@@ -1,22 +1,18 @@
-import { ConnectionManager } from '../components/ConnectionManager';
-import ConnectionState from '../components/ConnectionState';
-import { Events } from "../components/Events";
-import { MyForm } from '../components/MyForm';
+import { useState } from 'react';
+import ChatRoomsBlock from '../components/ChatRoomsBlock/ChatRoomsBlock';
+import ChatSingleBlock from '../components/ChatSingleBlock/ChatSingleBlock';
 
-import { useSocket } from '../contexts/SocketContext';
+
 
 
 function Chat() {
-    const { isConnected, fooEvents } = useSocket();
-
-    console.log('Chat component props:', { isConnected, fooEvents });
+  const [currentChatID, setCurrentChatID]= useState("hi")
   return (
-    <div className="App">
-      
-      <ConnectionState isConnected={ isConnected } />
-      <Events events={ fooEvents } />
-      <ConnectionManager />
-      <MyForm />
+    <div className="App m-0 pb-3 h-screen w-screen flex">
+      <p>{currentChatID}</p>
+      <ChatRoomsBlock />
+      <ChatSingleBlock/>
+
     </div>
   )
 }
