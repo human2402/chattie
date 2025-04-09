@@ -7,6 +7,8 @@ export const db = await open({
 });
 
 await db.exec(`
+    PRAGMA foreign_keys = ON;
+
     CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         first_name TEXT NOT NULL,
@@ -21,12 +23,36 @@ await db.exec(`
 
     CREATE TABLE IF NOT EXISTS messages (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        client_offset TEXT UNIQUE,
+        clientOffset TEXT UNIQUE,
         content TEXT,
         roomID INTEGER,
         authorID INTEGER,
-        timestamp TEXT
-  );
+        timestamp TEXT DEFAULT CURRENT_TIMESTAMP,
+
+        FOREIGN KEY (authorID) REFERENCES users(id),
+        FOREIGN KEY (roomID) REFERENCES rooms(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS rooms (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        description TEXT,
+        created_by INTEGER,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        is_private INTEGER DEFAULT 0,
+        amount_of_participants INTEGER DEFAULT 1,
+
+        FOREIGN KEY (created_by) REFERENCES users(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS room_members (
+        room_id INTEGER,
+        user_id INTEGER,
+        PRIMARY KEY (room_id, user_id),
+        FOREIGN KEY (room_id) REFERENCES rooms(id),
+        FOREIGN KEY (user_id) REFERENCES users(id)
+    );
+
 `);
 
 export default db;

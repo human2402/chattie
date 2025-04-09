@@ -52,7 +52,7 @@ export default function Login() {
       login(data.token, data.user);
       
       // Redirect to dashboard
-      navigate('/user/profile' );
+      navigate('/' );
 
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Произошла неизвестная ошибка');

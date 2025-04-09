@@ -1,13 +1,15 @@
-import CrateChat from "./CrateChat"
+import ChatRoomsList from "./ChatRoomsList"
+import CreateChat from "./CreateChat"
 
 
 
 function ChatRoomsBlock() {
   return (
     <div
-        className="min-w-64 bg-cyan-200"
+        className="min-w-90"
     >
-      <CrateChat  />
+      <CreateChat  />
+      <ChatRoomsList />
     </div>
   )
 }

@@ -1,12 +1,15 @@
 import { useState, FormEvent } from "react";
 import { socket } from '../../socket.ts';
+import { useAppContext } from "../../contexts/AppContext.tsx";
 
 
 type Props = { }
 
-function CrateChat({}: Props) {
+function CreateChat({}: Props) {
     const [value, setValue] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+
+    const {setChatRoomID} = useAppContext ();
 
     function onSubmit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
@@ -18,10 +21,10 @@ function CrateChat({}: Props) {
             console.log('Error joining room, retrying...');
             // Retry logic can be implemented here if necessary
           }
-
+          setChatRoomID (value)
           setIsLoading(false);
         });
-    
+        
         setValue("")
     }
 
@@ -43,4 +46,4 @@ function CrateChat({}: Props) {
   )
 }
 
-export default CrateChat
+export default CreateChat

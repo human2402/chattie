@@ -14,7 +14,7 @@ const SocketContext = createContext<SocketContextType | undefined>(undefined);
 // Provider component
 export const SocketProvider = ({ children }: { children: ReactNode }) => {
   const [isConnected, setIsConnected] = useState(socket.connected);
-  const [fooEvents, setFooEvents] = useState<string[]>([]);
+  const [fooEvents, setFooEvents] = useState<any[]>([]);
   const serverOffsetRef = useRef(0);
 
   useEffect(() => {
@@ -29,9 +29,23 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
       setIsConnected(false);
     }
 
-    function onFooEvent(value: string, serverOffset?: number) {
-      setFooEvents(prev => [...prev, value]);
+    function onFooEvent(
+      value: string, 
+      authorID: number, 
+      authorName:string,
+      roomID: number,
+      serverOffset?: number
+    ) {
+      let newMessage = {
+        value: value,
+        authorID: authorID,
+        authorName: authorName,
+        roomID: roomID
+      }
+      
+      setFooEvents(prev => [...prev, newMessage]);
       console.log(value, serverOffset)
+      // console.log(newMessage)
       if (serverOffset !== undefined) {
         serverOffsetRef.current = serverOffset;
       }

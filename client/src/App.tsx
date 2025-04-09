@@ -7,6 +7,7 @@ import { SocketProvider } from './contexts/SocketContext';
 import MainLayout from './MainLayout';
 import Chat from './pages/Chat';
 import Login from './pages/Login';
+import { AppProvider } from './contexts/AppContext';
 
 
 function App() {
@@ -25,7 +26,9 @@ function App() {
   return (
     <AuthProvider >
       <SocketProvider>
-        <RouterProvider router={router} />
+        <AppProvider>
+          <RouterProvider router={router} />
+        </AppProvider>
       </SocketProvider>
     </AuthProvider>
   );

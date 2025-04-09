@@ -58,3 +58,20 @@ router.post("/login", async (req, res) => {
         res.status(401).json({ error: error.message });
     }
 });
+
+router.get("/users/rooms/:id", authenticate, async (req,res) => {
+    const userID = req.params.id
+    // console.log (req.userFromJWT, userID)
+    if (userID == req.userFromJWT.id) {
+        try {
+            const rooms = await models.getRoomsByUserID (userID)
+            // console.log(rooms)
+            res.json(rooms)
+        } catch (e) {
+            // not cool to send the error to the client but it will do for now
+            res.status(401).json({ error: error.message });
+        }
+    } else {
+        return res.status(403).json({ error: "Access to rooms forbidden" });
+    }
+})

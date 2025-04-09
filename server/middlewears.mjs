@@ -14,7 +14,7 @@ export function authenticate(req, res, next) {
 
     try {
         const decoded = jwt.verify(token, JWT_SECRET);
-        req.manager = decoded; // Attach manager data to the request
+        req.userFromJWT = decoded; // Attach manager data to the request
         // console.log('Authentication passed');
         next();
     } catch (error) {

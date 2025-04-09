@@ -30,15 +30,15 @@ io.on('connection', async (socket) => {
         console.log(`Socket ${socket.id} is joining room: ${roomID}`);
         socket.join(roomID);
         curRoom = roomID
-        callback()
         restoreChat (db, socket, curRoom)
-      }
+        }
+        callback()
    });
   
   
-  socket.on('chat message', async (msg, roomID, authorID, clientOffset, callback) => {
+  socket.on('chat message', async (msg, roomID, authorID, authorName, clientOffset, callback) => {
     let result;
-    console.log ("mes from", socket.id, "to",  ":", msg)
+    console.log ("mes from", authorID, "to", roomID, ":", msg)
     try {
       result = await db.run(
         `INSERT INTO messages (content, roomID, authorID, clientOffset ) 
@@ -55,25 +55,49 @@ io.on('connection', async (socket) => {
       return;
     }
     
-    io.to(roomName).emit('foo', msg, result.lastID);
+    io.to(roomID).emit('foo', msg, authorID, authorName, roomID, result.lastID);
     callback();
   });
 
   if (!socket.recovered) {
     // if the connection state recovery was not successful
-    
+    restoreChat (db, socket, curRoom)
   }
 
   async function restoreChat (db, socket, curRoom) {
     try {
-      await db.each('SELECT id, content FROM messages WHERE id > ?',
-        [socket.handshake.auth.serverOffset || 0],
+      // await db.each('SELECT id, content FROM messages WHERE id > ? AND roomID == ?',
+      await db.each(`
+          SELECT messages.*, 
+            users.first_name || ' ' || users.last_name AS author_name, 
+            rooms.name AS room_name
+          FROM messages
+          JOIN users ON messages.authorID = users.id
+          JOIN rooms ON messages.roomID = rooms.id
+          WHERE messages.id > ? AND messages.roomID = ? 
+          ORDER BY messages.timestamp ASC;
+        `,
+        [socket.handshake.auth.serverOffset || 0, curRoom],
         (_err, row) => {
-          socket.emit('chat message', row.content, row.id);
+          // console.log(row)
+          
+          socket.emit('foo', row.content, row.authorID, row.author_name, row.roomID, row.id);
         }
+        // {
+
+        //   id: 26,
+        //   clientOffset: 'SPBdBi8daY0MaET-AAAo-0',
+        //   content: 'Дмитрий@1: hello',
+        //   roomID: 1,
+        //   authorID: 1,
+        //   timestamp: '2025-04-08 11:07:50',
+        //   author_name: 'Дмитрий Малежик',
+        //   room_name: 'Friends'
+        // }
+
       )
     } catch (e) {
-      // something went wrong
+      console.log(e)
     }
   }
 
