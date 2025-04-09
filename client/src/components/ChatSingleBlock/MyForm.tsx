@@ -2,6 +2,7 @@ import { useState, FormEvent  } from 'react';
 import { socket } from '../../socket.ts';
 import { useAppContext } from '../../contexts/AppContext.tsx';
 import { useAuth } from '../../contexts/AuthContext.tsx';
+import getTimestamp from '../../contexts/GetTime.ts';
 
 let counter = 0; 
 
@@ -17,12 +18,13 @@ export function MyForm() {
     event.preventDefault();
     setIsLoading(true);
     const authorName = `${user.firstName} ${user?.lastName}`
+    const timestamp = getTimestamp() 
 
     if (value!='' && chatRoomID!= null && user?.firstName != undefined) {
 
       const clientOffset = `${socket.id}-${counter++}`; 
   
-      socket.timeout(5000).emit(`chat message`, value, chatRoomID, user.id, authorName, clientOffset, (err: any) => {
+      socket.timeout(5000).emit(`chat message`, value, chatRoomID, user.id, authorName, timestamp, clientOffset, (err: any) => {
         if (err) {
           console.log('Error sending message, retrying...');
           // Retry logic can be implemented here if necessary

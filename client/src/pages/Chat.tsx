@@ -12,7 +12,7 @@ function Chat() {
 
   return (
     <div className="App m-0  h-screen w-screen flex">
-      <p>{chatRoomID}</p>
+
       <ChatRoomsBlock />
       <ChatSingleBlock/>
 

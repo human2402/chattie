@@ -34,13 +34,15 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
       authorID: number, 
       authorName:string,
       roomID: number,
+      timestamp: string,
       serverOffset?: number
     ) {
       let newMessage = {
         value: value,
         authorID: authorID,
         authorName: authorName,
-        roomID: roomID
+        roomID: roomID,
+        timestamp: timestamp
       }
       
       setFooEvents(prev => [...prev, newMessage]);

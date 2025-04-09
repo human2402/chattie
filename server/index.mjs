@@ -36,13 +36,13 @@ io.on('connection', async (socket) => {
    });
   
   
-  socket.on('chat message', async (msg, roomID, authorID, authorName, clientOffset, callback) => {
+  socket.on('chat message', async (msg, roomID, authorID, authorName, timestamp, clientOffset, callback) => {
     let result;
     console.log ("mes from", authorID, "to", roomID, ":", msg)
     try {
       result = await db.run(
-        `INSERT INTO messages (content, roomID, authorID, clientOffset ) 
-        VALUES (?,?,?,?)`, msg, roomID, authorID, clientOffset )
+        `INSERT INTO messages (content, roomID, authorID, clientOffset, timestamp ) 
+        VALUES (?,?,?,?,?)`, msg, roomID, authorID, clientOffset, timestamp )
     } catch (e) {
       if (e.errno === 19 /* SQLITE_CONSTRAINT */ ) {
         // Duplicate message detected (based on client_offset), notify client
@@ -55,7 +55,7 @@ io.on('connection', async (socket) => {
       return;
     }
     
-    io.to(roomID).emit('foo', msg, authorID, authorName, roomID, result.lastID);
+    io.to(roomID).emit('foo', msg, authorID, authorName, roomID, timestamp, result.lastID);
     callback();
   });
 
@@ -75,13 +75,13 @@ io.on('connection', async (socket) => {
           JOIN users ON messages.authorID = users.id
           JOIN rooms ON messages.roomID = rooms.id
           WHERE messages.id > ? AND messages.roomID = ? 
-          ORDER BY messages.timestamp ASC;
-        `,
+          `,
+          // ORDER BY messages.timestamp ASC;
         [socket.handshake.auth.serverOffset || 0, curRoom],
         (_err, row) => {
           // console.log(row)
           
-          socket.emit('foo', row.content, row.authorID, row.author_name, row.roomID, row.id);
+          socket.emit('foo', row.content, row.authorID, row.author_name, row.roomID, row.timestamp, row.id);
         }
         // {
 
