@@ -6,14 +6,14 @@ import ConnectionState from "./ConnectionState";
 
 type Props = {}
 
-function ChatRoomHeader({}: Props) {
+function ChatHeader({}: Props) {
     const {chatRoomData} = useAppContext();
     const { isConnected } = useSocket();
 
 
     return (
-        <div className='flex h-12 '>
-            <div className='grow flex flex-col justify-center'>
+        <div className='flex py-1 '>
+            <div className='grow flex flex-col justify-center '>
                 <p className='text-[17px] font-semibold'>
                     {chatRoomData.display_name}
                 </p>
@@ -30,4 +30,4 @@ function ChatRoomHeader({}: Props) {
     )
 }
 
-export default ChatRoomHeader
+export default ChatHeader

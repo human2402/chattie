@@ -1,6 +1,6 @@
 
-import ChatRoomsBlock from '../components/ChatRoomsBlock/ChatRoomsBlock';
-import ChatSingleBlock from '../components/ChatSingleBlock/ChatSingleBlock';
+import ChatRoomsBlock from '../components/ChatRoomsBlock/AChatRoomsBlock';
+import ChatSingleBlock from '../components/ChatSingleBlock/AChatSingleBlock';
 import { useAppContext } from '../contexts/AppContext';
 
 

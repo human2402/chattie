@@ -24,7 +24,8 @@ export function Events({ events }: EventsProps) {
     <div className="flex flex-col w-full h-full">
       {/* scrolling */}
       <div className="flex-1  overflow-y-auto px-2 max-w-[600px] mx-auto w-full">
-        <ul className="list-none m-0 p-0 w-full flex flex-col">
+        <div className='h-4'></div>
+        <ul className="list-none m-0 p-0 w-full flex flex-col justify-end">
           {
             events.map((event, index) =>{
               const isCurrentUser = event.authorID === user?.id;

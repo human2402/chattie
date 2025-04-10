@@ -38,7 +38,7 @@ function CreateChat({}: Props) {
         />
 
         <button 
-          className='bg-gray-700 text-white px-3 rounded-xl my-2 mr-2  '
+          className='bg-blue1  text-white px-3 rounded-xl py-2 my-2 mr-2  '
           type="submit"   
           disabled={ isLoading }
         >Submit</button>

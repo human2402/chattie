@@ -6,8 +6,18 @@ import "dotenv/config";
 const JWT_SECRET = process.env.JWT_SECRET;
 
 
-export async function getUsers() {
-    return await db.all("SELECT * FROM users");
+export async function getUsers(curID) {
+    return await db.all(`
+        SELECT 
+            id ,
+            first_name ,
+            middle_name ,
+            last_name ,
+            position,
+            department
+        FROM users
+        WHERE id != ?
+    `, [curID]);
 }
 
 export async function addUser(first_name, middle_name, last_name, login, password, department, position, is_admin) {

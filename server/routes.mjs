@@ -8,8 +8,9 @@ export const router = express.Router();
 //
 // should really remove that
 //
-router.get("/users", authenticate,  async (req, res) => {
-    res.json(await models.getUsers());
+router.get("/users/:id", authenticate,  async (req, res) => {
+    const userID = req.params.id
+    res.json(await models.getUsers(userID));
 });
 
 router.post("/users", authenticate, async (req, res) => {
@@ -74,4 +75,14 @@ router.get("/users/rooms/:id", authenticate, async (req,res) => {
     } else {
         return res.status(403).json({ error: "Access to rooms forbidden" });
     }
+})
+
+// router.get("/users/rooms/:id", authenticate, async (req,res) => {
+
+
+// })
+
+router.post("/rooms", async (req, res) => {
+    const newRoom= req.body;
+    console.log(newRoom)
 })
