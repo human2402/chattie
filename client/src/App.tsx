@@ -2,7 +2,8 @@ import { createBrowserRouter, createRoutesFromElements, Route, RouterProvider  }
 
 import { AuthProvider } from './contexts/AuthContext'
 import { SocketProvider } from './contexts/SocketContext'; 
-
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 import MainLayout from './MainLayout';
 import Chat from './pages/Chat';
@@ -28,6 +29,7 @@ function App() {
       <SocketProvider>
         <AppProvider>
           <RouterProvider router={router} />
+          <ToastContainer />
         </AppProvider>
       </SocketProvider>
     </AuthProvider>

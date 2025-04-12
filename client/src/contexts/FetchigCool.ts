@@ -49,7 +49,7 @@ export async function fetchPostCool(newData: {any}, url: string, setError:any, s
             }
             throw new Error("Failed to fetch");
         }
-          
+        console.log("Response", data)
         return data;
     } catch (error) {
         setError("Failed to fetch data. Please try again.");

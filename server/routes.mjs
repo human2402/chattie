@@ -83,6 +83,12 @@ router.get("/users/rooms/:id", authenticate, async (req,res) => {
 // })
 
 router.post("/rooms", async (req, res) => {
-    const newRoom= req.body;
-    console.log(newRoom)
+    try{
+        const {participants, name, created_by,created_at, is_private}= req.body;
+        let result = await models.createOrGetChatRoom(participants, name, created_by,created_at, is_private)
+        res.json(result)
+    } catch(e) {
+        res.status(401).json({ error: e.message });
+    }
+    
 })

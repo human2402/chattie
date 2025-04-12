@@ -57,8 +57,6 @@ export async function getRoomsByUserID(userID) {
             SELECT 
                 rooms.*,                  
                 rooms.is_private,          
-
-                -- Determine how to name the chat:
                 CASE 
                     -- If it's a private chat with 2 users:
                     WHEN rooms.is_private = 1 AND rooms.amount_of_participants = 2 THEN (
@@ -86,3 +84,67 @@ export async function getRoomsByUserID(userID) {
     //         // WHERE room_members.user_id = ?;
     // `, userID)
 }
+
+export async function createOrGetChatRoom(participants, name, createdBy,createdAt, isPrivate, ) {
+    const participantCount = participants.length;
+  
+    if (isPrivate) {
+      const placeholders = participants.map(() => '?').join(', ');
+      const existingRoom = await db.get(
+        // `
+        // SELECT r.id
+        // FROM rooms r
+        // JOIN room_members rm ON rm.room_id = r.id
+        // WHERE r.is_private = 1
+        //   AND rm.user_id IN (${placeholders})
+        // GROUP BY r.id
+        // HAVING COUNT(*) = ?
+        //    AND r.amount_of_participants = ?
+        // `
+        `
+            SELECT r.id, r.*
+            FROM rooms r
+            JOIN room_members rm ON rm.room_id = r.id
+            WHERE r.is_private = 1
+            GROUP BY r.id
+            HAVING COUNT(CASE WHEN rm.user_id IN (${placeholders}) THEN 1 END) = ?
+            AND COUNT(*) = ?
+        `,
+        ...participants,
+        participantCount,
+        participantCount
+    );
+    console.log(existingRoom)
+  
+      if (existingRoom) {
+        return {
+            roomData:existingRoom,
+            alreadyExists: true
+        };
+      }
+    }
+  
+    // No existing private room found or it's public — create a new one
+    const result = await db.run(
+      `
+      INSERT INTO rooms (name, created_by, created_at, is_private, amount_of_participants)
+      VALUES (?, ?, ?, ?, ?)
+      `,
+      name,
+      createdBy,
+      createdAt,
+      isPrivate ? 1 : 0,
+      participantCount
+    );
+  
+    const roomId = result.lastID;
+  
+    // Insert all participants into room_members
+    const insertValues = participants.map(userId => `(${roomId}, ${userId})`).join(', ');
+    await db.run(`INSERT INTO room_members (room_id, user_id) VALUES ${insertValues}`);
+  
+    return {
+        id:roomId,
+        alreadyExists: false
+    };
+  }
