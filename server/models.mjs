@@ -25,6 +25,14 @@ export async function addUser(first_name, middle_name, last_name, login, passwor
     return await db.run("INSERT INTO users (first_name, middle_name, last_name, login, password, position, department, is_admin) VALUES (?,?,?,?,?,?,?,?)", [first_name, middle_name, last_name, login, hashedPassword, position, department, is_admin]);
 }
 
+export async function updatePublicKey(id, publicKey) {
+    return await db.run (`
+        UPDATE users
+        SET publicKey = ?
+        WHERE id = ?
+    `, [publicKey, id])
+}
+
 export async function signInUser(login, password) {
     const user = await db.get("SELECT * FROM users WHERE login = ?", [login]);
     if (!user) throw new Error("User not found");

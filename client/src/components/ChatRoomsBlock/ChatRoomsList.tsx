@@ -56,7 +56,7 @@ function ChatRoomsList({}: Props) {
         
                 const data: Chat[] = await response.json();
                 setChats(data);
-                console.log(data)
+                // console.log(data)
             } catch (error) {
                 setError("Failed to load Chats. Please try again.");
                 console.error(error);

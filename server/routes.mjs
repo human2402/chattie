@@ -45,6 +45,24 @@ router.post("/users", authenticate, async (req, res) => {
     }
 });
 
+router.post("/users/:id/public-key", authenticate, async (req,res) => {
+    const userID = req.params.id
+    const { publicKey } = req.body;
+    // console.log (req.userFromJWT, userID)
+    if (userID == req.userFromJWT.id) {
+        try {
+            const update = await models.updatePublicKey (userID, publicKey)
+
+            res.json(update)
+        } catch (e) {
+            // not cool to send the error to the client but it will do for now
+            res.status(401).json({ error: e.message });
+        }
+    } else {
+        return res.status(403).json({ error: "Access forbidden" });
+    }
+})
+
 router.post("/login", async (req, res) => {
     const { login, password } = req.body;
 
@@ -76,6 +94,8 @@ router.get("/users/rooms/:id", authenticate, async (req,res) => {
         return res.status(403).json({ error: "Access to rooms forbidden" });
     }
 })
+
+
 
 // router.get("/users/rooms/:id", authenticate, async (req,res) => {
 

@@ -18,7 +18,7 @@ interface LoginResponse {
 
 export default function Login() {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, generateAndStoreKeys } = useAuth();
   const [credentials, setCredentials] = useState({
     login: '',
     password: ''
@@ -34,6 +34,7 @@ export default function Login() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem("authToken")}`,
         },
         body: JSON.stringify({
           login: credentials.login,
@@ -50,6 +51,8 @@ export default function Login() {
       
       // Save token to localStorage
       login(data.token, data.user);
+      generateAndStoreKeys("111");
+      
       
       // Redirect to dashboard
       navigate('/' );
@@ -128,6 +131,12 @@ export default function Login() {
                 className="bg-blue1 flex mt-10 w-full justify-center rounded-md  px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm  focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
               >
                 Вход
+              </button>
+              <button
+                onClick={() => {generateAndStoreKeys("111");}}
+                className="bg-blue1 flex mt-10 w-full justify-center rounded-md  px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm  focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+              >
+                Ключики
               </button>
             </div>
           </form>
