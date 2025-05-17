@@ -62,39 +62,104 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // keys Stuff //
   //            //
 
-  const generateAndStoreKeys = async (password: string) => {
-    // Check if keys already exist
-    const existingPrivateKey = localStorage.getItem('privateKeyPem')
-    if (existingPrivateKey) {
-      console.log('Private key already exists')
-      return
-    }
+  
+  // const generateAndStoreKeys = async (password: string) => {
+  //   // Check if keys already exist
+  //   if (user) {
+  //     const localKeyData = localStorage.getItem('privateKeyData');
+  //     const currentUserId = user.id;
+  
+  //     if (localKeyData) {
+  //       const parsed = JSON.parse(localKeyData);
+        
+  //       if (parsed.userId !== currentUserId) {
+  //         // Key belongs to a different user — generate new keys
+  //         generateAndStoreKeyPair(currentUserId);
+  //       } else {
+  //         // Key is valid for this user — you're good
+  //         console.log("Correct key already present.");
+  //       }
+  //     } else {
+  //       // No key exists — generate new one
+  //       generateAndStoreKeyPair(currentUserId);
+  //     }
+  //   }
 
-    // Generate key pair
-    const keypair = forge.pki.rsa.generateKeyPair({ bits: 2048, e: 0x10001 })
-    const publicKeyPem = forge.pki.publicKeyToPem(keypair.publicKey)
-    const privateKeyPem = forge.pki.privateKeyToPem(keypair.privateKey)
+  //   // Generate key pair
+  //   const keypair = forge.pki.rsa.generateKeyPair({ bits: 2048, e: 0x10001 })
+  //   const publicKeyPem = forge.pki.publicKeyToPem(keypair.publicKey)
+  //   const privateKeyPem = forge.pki.privateKeyToPem(keypair.privateKey)
 
     
 
-    // Send public key to server
+  //   // Send public key to server
+  //   try {
+  //     const res = await fetch(`/api/users/${user.id}/public-key`, {
+  //       method: 'POST',
+  //       headers: { 
+  //         'Content-Type': 'application/json',
+  //         Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+  //       },
+  //       body: JSON.stringify({ publicKey: publicKeyPem }),
+  //     })
+  //     if (!res.ok) throw new Error('Failed to upload public key')
+  //     console.log('Public key uploaded successfully')
+  //     // Store private key locally (for now, not encrypted)!!!!!!!!!
+  //     localStorage.setItem('privateKeyPem', privateKeyPem)
+  //   } catch (err) {
+  //     console.error('Error uploading public key:', err)
+  //   }
+  // }
+
+  const generateAndStoreKeys = async (userid:number , password: string) => {
+  
+    const currentUserId = userid;
+    const localKeyData = localStorage.getItem('privateKeyData');
+  
+    if (localKeyData) {
+      try {
+        const parsed = JSON.parse(localKeyData);
+        if (parsed.userId === currentUserId) {
+          console.log('Correct key already present.');
+          return; // ✅ Skip generation
+        } else {
+          console.warn('Key belongs to different user. Generating new key...');
+        }
+      } catch (err) {
+        console.error('Failed to parse localKeyData, generating new keys...');
+      }
+    }
+  
+    // 🔐 Generate new key pair
+    const keypair = forge.pki.rsa.generateKeyPair({ bits: 2048, e: 0x10001 });
+    const publicKeyPem = forge.pki.publicKeyToPem(keypair.publicKey);
+    const privateKeyPem = forge.pki.privateKeyToPem(keypair.privateKey);
+  
+    // ⬆️ Upload public key to server
     try {
-      const res = await fetch(`/api/users/${user.id}/public-key`, {
+      const res = await fetch(`/api/users/${currentUserId}/public-key`, {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${localStorage.getItem("authToken")}`,
         },
         body: JSON.stringify({ publicKey: publicKeyPem }),
-      })
-      if (!res.ok) throw new Error('Failed to upload public key')
-      console.log('Public key uploaded successfully')
-      // Store private key locally (for now, not encrypted)!!!!!!!!!
-      localStorage.setItem('privateKeyPem', privateKeyPem)
+      });
+  
+      if (!res.ok) throw new Error('Failed to upload public key');
+      console.log('✅ Public key uploaded successfully');
+  
+      // 💾 Store private key + userId locally
+      localStorage.setItem('privateKeyData', JSON.stringify({
+        userId: currentUserId,
+        privateKey: privateKeyPem
+      }));
+  
     } catch (err) {
-      console.error('Error uploading public key:', err)
+      console.error('❌ Error uploading public key:', err);
     }
-  }
+  };
+  
 
 
 
