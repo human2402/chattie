@@ -20,6 +20,7 @@ type chatRoomDataType = {
 const AppContext = createContext<AppContextType>({} as AppContextType)
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
+    const [isCreateNewChatMenu, setCreateNewChatMenu] = useState<boolean> (false) 
     const [chatRoomID, setChatRoomID] = useState <string | null> (null)
     const [chatRoomData, setChatRoomData] = useState <chatRoomDataType> ({
         id : 0,
@@ -33,7 +34,11 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     })
 
     return(
-        <AppContext.Provider value={{ chatRoomID, setChatRoomID, chatRoomData, setChatRoomData }}>
+        <AppContext.Provider value={{ 
+            chatRoomID, setChatRoomID, 
+            chatRoomData, setChatRoomData,
+            isCreateNewChatMenu, setCreateNewChatMenu
+        }}>
             {children}
         </AppContext.Provider>
     )

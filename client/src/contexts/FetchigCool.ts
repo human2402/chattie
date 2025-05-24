@@ -58,3 +58,23 @@ export async function fetchPostCool(newData: {any}, url: string, setError:any, s
         setLoading(false);
     }
 }
+
+export async function justFetch(url: string) {
+    try {
+        const res = await fetch(url, {
+            method: 'GET',
+            headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+            },
+        });
+    
+        if (!res.ok) throw new Error('Failed to get');
+        console.log('✅ downloaded successfully');
+    
+        return res
+    
+        } catch (err) {
+        console.error('❌ Error getting :', err);
+        }
+}

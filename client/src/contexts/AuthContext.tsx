@@ -1,5 +1,7 @@
 import { createContext, useContext, useState, ReactNode } from 'react';
 import forge from 'node-forge';
+import crypto from 'crypto';
+import { fetchGetCool, justFetch } from './FetchigCool';
 
 interface User {
   id: number;
@@ -57,6 +59,51 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsAuthenticated(false);
     setUser(null);
   };
+
+  
+
+/**
+ * Generates a random AES key and encrypts it with the recipient's RSA public key
+ * @param {string} recipientPublicKey - PEM-encoded RSA public key (e.g., -----BEGIN PUBLIC KEY-----...)
+ * @returns {{ encryptedAESKey: string, aesKey: Buffer }}
+ */
+  async function generateAndEncryptAESKey(recipientID: number) {
+    // 1. Generate a 256-bit AES key using Web Crypto API
+      const aesKey = await window.crypto.subtle.generateKey(
+        {
+          name: 'AES-GCM',
+          length: 256,
+        },
+        true,
+        ['encrypt', 'decrypt']
+      );
+
+      // 2. Export the key to raw bytes
+      const rawKey = await window.crypto.subtle.exportKey('raw', aesKey);
+
+      // 3. Fetch recipient's public key
+      const { publicKey: recipientPublicKeyPem } = await justFetch(`/api/users/${recipientID}/public-key`);
+      console.log (publicKey)
+      // 4. Convert PEM to CryptoKey
+      // const recipientPublicKey = await importRSAPublicKey(recipientPublicKeyPem);
+
+      // // 5. Encrypt the AES key using the recipient's RSA public key
+      // const encryptedKeyBuffer = await window.crypto.subtle.encrypt(
+      //   {
+      //     name: 'RSA-OAEP',
+      //   },
+      //   recipientPublicKey,
+      //   rawKey
+      // );
+
+      // const encryptedKeyBase64 = btoa(String.fromCharCode(...new Uint8Array(encryptedKeyBuffer)));
+
+      // return {
+      //   aesKey,
+      //   encryptedAESKey: encryptedKeyBase64,
+      // };
+  }
+
 
   //            //
   // keys Stuff //
@@ -165,7 +212,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, login, logout, generateAndStoreKeys }}>
+    <AuthContext.Provider value={{ isAuthenticated, user, login, 
+      logout, generateAndStoreKeys, generateAndEncryptAESKey }}>
       {children}
     </AuthContext.Provider>
   );

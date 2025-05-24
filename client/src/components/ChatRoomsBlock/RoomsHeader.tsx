@@ -9,12 +9,14 @@ type Props = {
 
 function RoomsHeader({setCreateNewChatMenu, setDisplayMenu}: Props) {
   return (
-    <div className='h-12 flex  items-center px-3  border-b-[1px] border-gray-300'>
+    <div className='h-12 flex  items-center px-3  '>
       <GiHamburgerMenu 
         className='h-5 w-5 text-gray-500 hover:text-black transition cursor-pointer'
         onClick={() => setDisplayMenu(prev => (!prev))}
       />
-      <p className='font-bold grow text-blue-800 ml-2'>ЭТО ЧАТ</p>
+
+      <p className='font-bold grow text-blue-800 ml-3 '>Мессенджер</p>
+
       <LuMessageCirclePlus  
         className='h-6 w-6 text-gray-500 hover:text-black transition cursor-pointer'
         onClick={() => setCreateNewChatMenu(true)}

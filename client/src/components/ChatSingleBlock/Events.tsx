@@ -10,11 +10,16 @@ interface EventsProps {
 }
 
 export function Events({ events }: EventsProps) {
-  const {user} = useAuth()
+  const {user, generateAndEncryptAESKey} = useAuth()
   const {chatRoomID} = useAppContext ()
   const bottomRef = useRef<HTMLDivElement>(null);
+    
   // console.log(events)
 
+  useEffect(() => {
+    generateAndEncryptAESKey(2);
+  }, []);
+  
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [events]);
