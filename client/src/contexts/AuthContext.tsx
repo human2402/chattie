@@ -69,21 +69,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
  */
   async function generateAndEncryptAESKey(recipientID: number) {
     // 1. Generate a 256-bit AES key using Web Crypto API
-      const aesKey = await window.crypto.subtle.generateKey(
-        {
-          name: 'AES-GCM',
-          length: 256,
-        },
-        true,
-        ['encrypt', 'decrypt']
-      );
+              // const aesKey = await window.crypto.subtle.generateKey(
+              //   {
+              //     name: 'AES-GCM',
+              //     length: 256,
+              //   },
+              //   true,
+              //   ['encrypt', 'decrypt']
+              // );
 
-      // 2. Export the key to raw bytes
-      const rawKey = await window.crypto.subtle.exportKey('raw', aesKey);
+              // // 2. Export the key to raw bytes
+              // const rawKey = await window.crypto.subtle.exportKey('raw', aesKey);
 
-      // 3. Fetch recipient's public key
-      const { publicKey: recipientPublicKeyPem } = await justFetch(`/api/users/${recipientID}/public-key`);
-      console.log (publicKey)
+              // // 3. Fetch recipient's public key
+              // const { publicKey: recipientPublicKeyPem } = await justFetch(`/api/users/${recipientID}/public-key`);
+              // console.log (publicKey)
       // 4. Convert PEM to CryptoKey
       // const recipientPublicKey = await importRSAPublicKey(recipientPublicKeyPem);
 

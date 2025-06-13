@@ -19,8 +19,25 @@ export default function getTimestamp(): string {
   }
   
   // Extracts DD.MM.YY from a datetime string like '2025-04-09 16:19:47'
-  export function extractDate(datetime: string): string {
-    const [datePart] = datetime.split(' ');
-    const [year, month, day] = datePart.split('-');
-    return `${day}.${month}.${year.slice(2)}`; // 'DD.MM.YY'
+  // export function extractDate(datetime: string): string {
+  //   const [datePart] = datetime.split(' ');
+  //   const [year, month, day] = datePart.split('-');
+  //   return `${day}.${month}.${year.slice(2)}`; // 'DD.MM.YY'
+  // }
+
+  export function extractDate(dateTime: string): string {
+      return dateTime.split(" ")[0];
+  }
+
+  export function formatDatePlate(isoDate: string): string {
+    // console.log(isoDate)
+    // isoDate is "2025-05-31"
+    const [year, month, day] = isoDate.split("-").map(Number);
+    const dateObj = new Date(year, month - 1, day);
+    // e.g. “May 31, 2025”
+    return dateObj.toLocaleDateString("ru-RU", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
   }

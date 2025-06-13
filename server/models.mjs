@@ -162,4 +162,22 @@ export async function createOrGetChatRoom(participants, name, createdBy,createdA
         id:roomId,
         alreadyExists: false
     };
-  }
+}
+  
+export async function getParticipantsByRoomID(roomID) {
+    const participants = await db.all(`
+        SELECT
+            u.id AS user_id,
+            u.first_name || ' ' || u.last_name AS friendly_name
+        FROM room_members rm
+        JOIN users u
+        ON rm.user_id = u.id
+        WHERE rm.room_id = ?;
+        `, [roomID]);
+    if (!participants) throw new Error("User not found");
+
+        // console.log(participants)
+    return { 
+        participants
+    };
+}

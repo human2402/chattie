@@ -1,6 +1,7 @@
 import React from 'react'
 import { LuMessageCirclePlus } from "react-icons/lu";
 import { GiHamburgerMenu } from "react-icons/gi";
+import logo from '../../assets/bgu-messanger-text.svg';
 
 type Props = {
   setCreateNewChatMenu: (value: boolean) => void,
@@ -15,7 +16,13 @@ function RoomsHeader({setCreateNewChatMenu, setDisplayMenu}: Props) {
         onClick={() => setDisplayMenu(prev => (!prev))}
       />
 
-      <p className='font-bold grow text-blue-800 ml-3 '>Мессенджер</p>
+      <img
+        alt="БГУ МЕССЕНДЖЕР"
+        src={logo}
+        className=" w-48 pl-2 pt-1 "
+      />
+
+      <div className='grow'></div>
 
       <LuMessageCirclePlus  
         className='h-6 w-6 text-gray-500 hover:text-black transition cursor-pointer'

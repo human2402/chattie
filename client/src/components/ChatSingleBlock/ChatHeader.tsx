@@ -18,7 +18,7 @@ const emptyChatRoomData = {
 }
 
 function ChatHeader({}: Props) {
-    const {chatRoomData, chatRoomID, setChatRoomID, setChatRoomData} = useAppContext();
+    const {chatRoomData, chatRoomID, setChatRoomID, setChatRoomData, setChatDetails} = useAppContext();
     
 
 
@@ -28,9 +28,16 @@ function ChatHeader({}: Props) {
                 <p className='text-[17px] font-semibold'>
                     {chatRoomData.display_name}
                 </p>
-                {(!chatRoomData.is_private&& chatRoomData.amount_of_participants>0)&&(
-                    <p className='text-gray-500 font-light'>
+                {(!chatRoomData.is_private&& chatRoomData.amount_of_participants>0)?(
+                    <p 
+                        className='text-gray-500 font-light'
+                        onClick={() => setChatDetails(chatRoomData.id)}
+                    >
                         {chatRoomData.amount_of_participants} участнов
+                    </p>
+                ):(
+                    <p className='text-gray-500 font-light'>
+                        Онлайн!
                     </p>
                 )}  
 

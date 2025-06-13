@@ -108,6 +108,20 @@ router.get("/users/rooms/:id", authenticate, async (req,res) => {
     }
 })
 
+router.get("/rooms/:id/participants", authenticate, async (req,res) => {
+    const roomID = req.params.id
+    // console.log (req.userFromJWT, userID)
+
+    try {
+        const participants = await models.getParticipantsByRoomID (roomID)
+        // console.log(rooms)
+        res.json(participants)
+    } catch (e) {
+        // not cool to send the error to the client but it will do for now
+        res.status(401).json({ error: error.message });
+    }
+
+})
 
 
 // router.get("/users/rooms/:id", authenticate, async (req,res) => {

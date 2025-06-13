@@ -43,7 +43,7 @@ export default function Login() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Ошибка авторизации');
+        throw new Error(errorData.message || 'Неправильный логин или пароль');
       }
 
       const data: LoginResponse = await response.json();

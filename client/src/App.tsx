@@ -26,12 +26,12 @@ function App() {
 
   return (
     <AuthProvider >
-      <SocketProvider>
-        <AppProvider>
+      <AppProvider>
+        <SocketProvider>
           <RouterProvider router={router} />
           <ToastContainer />
-        </AppProvider>
-      </SocketProvider>
+        </SocketProvider>
+      </AppProvider>
     </AuthProvider>
   );
 }
