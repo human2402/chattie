@@ -31,17 +31,7 @@ function CreateChat({}: Props) {
 
   return (
     <form onSubmit={ onSubmit }>
-        <input 
-          className=' border-0 custom-double-shadow px-4 py-2  bg-white grow rounded-xl m-2 focus:outline-0' 
-          onChange={ e => setValue(e.target.value) } 
-          value={ value }
-        />
-
-        <button 
-          className='bg-blue1  text-white px-3 rounded-xl py-2 my-2 mr-2  '
-          type="submit"   
-          disabled={ isLoading }
-        >Submit</button>
+       
     </form>
   )
 }

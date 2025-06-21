@@ -82,7 +82,7 @@ function ChatCreate({setCreateNewChatMenu}: Props) {
 
     return (
         <div className='flex flex-col h-full'>
-            <p>{chatRoomID}</p>
+
             <div className='flex items-center px-3 h-12 border-b-[1px] border-gray-300'>
                 <p className='font-semibold grow text-md'>Создание чата</p>
                 <IoClose 

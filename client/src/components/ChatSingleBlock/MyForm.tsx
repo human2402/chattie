@@ -7,7 +7,7 @@ import { IoSend } from "react-icons/io5";
 import { CgAttachment } from "react-icons/cg";
 import { useSocket } from '../../contexts/SocketContext.tsx';
 import { BsEmojiSmile } from "react-icons/bs";
-import { sendImage } from '../../contexts/FetchigCool.ts';
+import { sendFile } from '../../contexts/FetchigCool.ts';
 
 let counter = 0; 
 
@@ -85,9 +85,10 @@ export function MyForm() {
     const authorName = `${user?.firstName} ${user?.lastName}`
     const timestamp = getTimestamp() 
     const clientOffset = `${socket.id}-${counter++}`; 
+    
 
     // You can send the file here or preview it first
-    sendImage(
+    sendFile(
       file, chatRoomID, user?.id, 
       socket, authorName, timestamp, 
       clientOffset
@@ -98,7 +99,7 @@ export function MyForm() {
       <div className="sticky bottom-0 px-2 pb-2 ">
         <input
           type="file"
-          accept="image/*"
+          accept="*/*"
           onChange={handleImageUpload}
           style={{ display: 'none' }}
           ref={fileInputRef}
@@ -108,7 +109,7 @@ export function MyForm() {
           className="flex items-center w-full max-w-[600px] mx-auto bg-white rounded-xl custom-double-shadow"
         >
           <CgAttachment 
-            className="m-2 text-gray-500 h-6 w-6 flex-shrink-0" 
+            className="m-2 text-gray-500 h-6 w-6 flex-shrink-0 cursor-pointer" 
             onClick={() => fileInputRef.current?.click()}
           />
 

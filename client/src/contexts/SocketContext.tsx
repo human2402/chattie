@@ -86,14 +86,6 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
       newMes
     ) {
       console.log(newMes)
-      // let newMessage = {
-      //   value: value,
-      //   authorID: authorID,
-      //   authorName: authorName,
-      //   roomID: roomID,
-      //   timestamp: timestamp,
-      //   type: type
-      // }
 
 
       

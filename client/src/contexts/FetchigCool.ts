@@ -90,51 +90,115 @@ export function abbreviateName(fullName: string) {
   }
 
 
-export async function sendImage(
-    file: File, 
-    currentRoomID: number, 
-    userID: number, 
-    socket,
+// export async function sendFile(
+//     file: File, 
+//     currentRoomID: number, 
+//     userID: number, 
+//     socket,
+//     authorName: string,
+//     timestamp: string,
+//     clientOffset: string
+// ) {
+//     const formData = new FormData();
+//     formData.append('image', file);
+//     formData.append('roomID', currentRoomID);
+//     formData.append('authorID', userID);
+  
+//     const res = await fetch('/api/upload-image', {
+//       method: 'POST',
+//       body: formData,
+//     });
+  
+//     const data = await res.json();
+//     console.log(data)
+
+//     if (!socket) {
+//         console.warn("Socket not ready yet");
+//         return;
+//       }
+  
+//     if (data.success) {
+//         socket.emit(
+//             'image message',
+//             {
+//               roomID: currentRoomID,
+//               authorID: userID,
+//               msg: fileName.name,
+//               file: type: "file",
+//               file: {
+//                 name: file.name,      // 👈 filename
+//                 type: file.type,
+//                 size: file.size,
+//                 data: base64,
+//               },
+//               authorName: authorName,
+//               timestamp:timestamp,
+//               clientOffset: clientOffset,
+//               type: 'image',
+//             },
+//             (err: any) => {
+//               if (err) {
+//                 console.log('Error sending message, retrying...');
+//                 // Optional: add retry logic here
+//               }
+//             }
+//           );
+//     }
+//   }
+
+
+export async function sendFile(
+    file: File,
+    currentRoomID: number,
+    userID: number,
+    socket: any,
     authorName: string,
     timestamp: string,
     clientOffset: string
-) {
+  ) {
     const formData = new FormData();
-    formData.append('image', file);
-    formData.append('roomID', currentRoomID);
-    formData.append('authorID', userID);
+    formData.append('file', file); // better to rename from 'image' to 'file' if it's general
+    formData.append('roomID', String(currentRoomID));
+    formData.append('authorID', String(userID));
   
-    const res = await fetch('/api/upload-image', {
-      method: 'POST',
-      body: formData,
-    });
+    try {
+      const res = await fetch('/api/upload-file', {
+        method: 'POST',
+        body: formData,
+      });
   
-    const data = await res.json();
-    console.log(data)
-
-    if (!socket) {
+      const data = await res.json();
+      console.log(data);
+  
+      if (!socket) {
         console.warn("Socket not ready yet");
         return;
       }
   
-    if (data.success) {
-        socket.emit(
-            'image message',
-            {
-              roomID: currentRoomID,
-              authorID: userID,
-              msg: data.url,
-              authorName: authorName,
-              timestamp:timestamp,
-              clientOffset: clientOffset,
-              type: 'image',
-            },
-            (err: any) => {
-              if (err) {
-                console.log('Error sending message, retrying...');
-                // Optional: add retry logic here
-              }
-            }
-          );
+      if (data.success && data.url) {
+        socket.emit('chat message', {
+          roomID: currentRoomID,
+          authorID: userID,
+          msg: file.name, // filename shown in chat
+          file: {
+            name: file.name,
+            type: file.type,
+            size: file.size,
+            url: data.url, // returned by server
+          },
+          authorName,
+          timestamp,
+          clientOffset,
+          type: 'file',
+        }, (err: any) => {
+          if (err) {
+            console.log('Error sending message, retrying...');
+          }
+        });
+      } else {
+        console.error('Upload failed', data);
+      }
+    } catch (err) {
+      console.error('Upload error:', err);
     }
   }

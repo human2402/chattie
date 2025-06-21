@@ -37,7 +37,7 @@ function ChatHeader({}: Props) {
                     </p>
                 ):(
                     <p className='text-gray-500 font-light'>
-                        Онлайн!
+                        Онлайн
                     </p>
                 )}  
 

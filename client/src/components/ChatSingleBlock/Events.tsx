@@ -3,7 +3,7 @@ import { MyForm } from './MyForm';
 import { useAuth } from '../../contexts/AuthContext';
 import { useAppContext } from '../../contexts/AppContext';
 import { extractDate, extractTime, formatDatePlate } from '../../contexts/GetTime';
-import ImageBubble from './ImageBubble';
+import FileBubble from './FileBubble';
 import { GiEvilComet } from 'react-icons/gi';
 
 
@@ -109,7 +109,7 @@ export function Events({ events }: EventsProps) {
                       { 
                               event.type.trim() === "text" ? 
                               event.msg :
-                              (<ImageBubble url= {event.msg} type = {event.type} />) 
+                              (<FileBubble file = {event.file} />) 
                             }
                       </p>
                       <p className='text-right font-light text-sm text-gray-500'>
@@ -129,7 +129,7 @@ export function Events({ events }: EventsProps) {
                             { 
                               event.type.trim() === "text" ? 
                               event.msg :
-                              (<ImageBubble url= {event.msg} type = {event.type} />) 
+                              (<FileBubble file = {event.file} />) 
                             }
                         </p>
                         <p className='text-right font-light text-sm text-gray-500'>

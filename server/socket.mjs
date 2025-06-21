@@ -83,41 +83,185 @@ export function setupSocket (server, db) {
               }
           });
 
-        async function proccessMsg (data, callback) {
-            let result;
-            console.log ("mes from", data.authorID, "to", data.roomID, ":", data.msg)
-            try {
-                result = await db.run(
-                    `INSERT INTO messages (content, roomID, authorID, clientOffset, timestamp, messagetype  ) 
-                    VALUES (?,?,?,?,?, ?)`, data.msg, data.roomID, data.authorID, data.clientOffset, data.timestamp, data.type )
-            } catch (e) {
-                if (e.errno === 19 /* SQLITE_CONSTRAINT */ ) {
-                    // Duplicate message detected (based on client_offset), notify client
-                    callback();
-                } else {
-                    // Any other error (e.g., database issues), let the client retry
-                    console.error('Database error:', e);
-                    callback(e);
-                }
-                return;
-            }
+        // async function proccessMsg (data, callback) {
+        //     let result;
+        //     console.log ("mes from", data.authorID, "to", data.roomID, ":", data.msg)
+        //     try {
+        //         result = await db.run(
+        //             `INSERT INTO messages (content, roomID, authorID, clientOffset, timestamp, messagetype  ) 
+        //             VALUES (?,?,?,?,?, ?)`, data.msg, data.roomID, data.authorID, data.clientOffset, data.timestamp, data.type )
+        //     } catch (e) {
+        //         if (e.errno === 19 /* SQLITE_CONSTRAINT */ ) {
+        //             // Duplicate message detected (based on client_offset), notify client
+        //             callback();
+        //         } else {
+        //             // Any other error (e.g., database issues), let the client retry
+        //             console.error('Database error:', e);
+        //             callback(e);
+        //         }
+        //         return;
+        //     }
 
-            sendNotification(
-                data.msg, data.authorID, data.authorName, data.roomID, data.timestamp, result.lastID
-            )
+        //     sendNotification(
+        //         data.msg, data.authorID, data.authorName, data.roomID, data.timestamp, result.lastID
+        //     )
             
-            // io.to(data.roomID).emit('foo', data.msg, data.authorID, data.authorName, data.roomID, data.timestamp, data.type, result.lastID);
-            io.to(data.roomID).emit('foo', {
-                msg: data.msg, 
-                authorID: data.authorID, 
-                authorName: data.authorName, 
+        //     // io.to(data.roomID).emit('foo', data.msg, data.authorID, data.authorName, data.roomID, data.timestamp, data.type, result.lastID);
+        //     io.to(data.roomID).emit('foo', {
+        //         msg: data.msg, 
+        //         authorID: data.authorID, 
+        //         authorName: data.authorName, 
+        //         roomID: data.roomID,
+        //         timestamp: data.timestamp, 
+        //         type: data.type, 
+        //         lastID: result.lastID
+        //     });
+        //     callback();
+        // }
+
+        async function proccessMsg(data, callback) {
+            // Step 1: Basic validation
+            if (!data.msg || !data.roomID || !data.authorID || !data.timestamp || !data.type) {
+              console.warn("Incomplete message received:", data);
+              callback("Invalid message data");
+              return;
+            }
+          
+            console.log("msg from", data.authorID, "to", data.roomID, ":", data.msg);
+          
+            try {
+              let result;
+          
+              // Step 2: Prepare fileData JSON if type is "file"
+              const fileDataJson = data.type === 'file' && data.file
+                ? JSON.stringify({
+                    name: data.file.name,
+                    type: data.file.type,
+                    size: data.file.size,
+                    url: data.file.url
+                  })
+                : null;
+          
+              // Step 3: Insert into SQLite
+              result = await db.run(
+                `INSERT INTO messages 
+                   (content, roomID, authorID, clientOffset, timestamp, messagetype, fileData) 
+                 VALUES (?, ?, ?, ?, ?, ?, ?)`,
+                [
+                  data.msg,
+                  data.roomID,
+                  data.authorID,
+                  data.clientOffset,
+                  data.timestamp,
+                  data.type,
+                  fileDataJson
+                ]
+              );
+          
+              // Step 4: Optional notification logic
+              sendNotification(
+                data.msg,
+                data.authorID,
+                data.authorName,
+                data.roomID,
+                data.timestamp,
+                result.lastID
+              );
+          
+              // Step 5: Emit to clients
+              io.to(data.roomID).emit('foo', {
+                msg: data.msg,
+                authorID: data.authorID,
+                authorName: data.authorName,
                 roomID: data.roomID,
-                timestamp: data.timestamp, 
-                type: data.type, 
-                lastID: result.lastID
-            });
-            callback();
-        }
+                timestamp: data.timestamp,
+                type: data.type,
+                lastID: result.lastID,
+                file: data.file ?? null // frontend can use this directly
+              });
+          
+              callback();
+            } catch (e) {
+              if (e.errno === 19 /* SQLITE_CONSTRAINT */) {
+                callback(); // Duplicate message (clientOffset constraint)
+              } else {
+                console.error('Database error:', e);
+                callback(e); // Retryable error
+              }
+            }
+          }
+          async function proccessMsg(data, callback) {
+            // Step 1: Basic validation
+            if (!data.msg || !data.roomID || !data.authorID || !data.timestamp || !data.type) {
+              console.warn("Incomplete message received:", data);
+              callback("Invalid message data");
+              return;
+            }
+          
+            console.log("msg from", data.authorID, "to", data.roomID, ":", data.msg);
+          
+            try {
+              let result;
+          
+              // Step 2: Prepare fileData JSON if type is "file"
+              const fileDataJson = data.type === 'file' && data.file
+                ? JSON.stringify({
+                    name: data.file.name,
+                    type: data.file.type,
+                    size: data.file.size,
+                    url: data.file.url
+                  })
+                : null;
+          
+              // Step 3: Insert into SQLite
+              result = await db.run(
+                `INSERT INTO messages 
+                   (content, roomID, authorID, clientOffset, timestamp, messagetype, fileData) 
+                 VALUES (?, ?, ?, ?, ?, ?, ?)`,
+                [
+                  data.msg,
+                  data.roomID,
+                  data.authorID,
+                  data.clientOffset,
+                  data.timestamp,
+                  data.type,
+                  fileDataJson
+                ]
+              );
+          
+              // Step 4: Optional notification logic
+              sendNotification(
+                data.msg,
+                data.authorID,
+                data.authorName,
+                data.roomID,
+                data.timestamp,
+                result.lastID
+              );
+          
+              // Step 5: Emit to clients
+              io.to(data.roomID).emit('foo', {
+                msg: data.msg,
+                authorID: data.authorID,
+                authorName: data.authorName,
+                roomID: data.roomID,
+                timestamp: data.timestamp,
+                type: data.type,
+                lastID: result.lastID,
+                file: data.file ?? null // frontend can use this directly
+              });
+          
+              callback();
+            } catch (e) {
+              if (e.errno === 19 /* SQLITE_CONSTRAINT */) {
+                callback(); // Duplicate message (clientOffset constraint)
+              } else {
+                console.error('Database error:', e);
+                callback(e); // Retryable error
+              }
+            }
+          }
+                    
 
         socket.on('chat message', async (data, callback) => {
             await proccessMsg (data, callback)
@@ -161,51 +305,97 @@ export function setupSocket (server, db) {
             }
         }
 
-        async function restoreChat (db, socket, curRoom) {
+        // async function restoreChat (db, socket, curRoom) {
+        //     try {
+        //     // await db.each('SELECT id, content FROM messages WHERE id > ? AND roomID == ?',
+        //     await db.each(`
+        //         SELECT messages.*, 
+        //             users.first_name || ' ' || users.last_name AS author_name, 
+        //             rooms.name AS room_name
+        //         FROM messages
+        //         JOIN users ON messages.authorID = users.id
+        //         JOIN rooms ON messages.roomID = rooms.id
+        //         WHERE messages.id > ? AND messages.roomID = ? 
+        //         `,
+        //         // ORDER BY messages.timestamp ASC;
+        //         [socket.handshake.auth.serverOffset || 0, curRoom],
+        //         (_err, row) => {
+        //         // console.log(row)
+                
+        //         socket.emit('foo', {
+        //             msg: row.content, 
+        //             authorID: row.authorID, 
+        //             authorName: row.author_name, 
+        //             roomID: row.roomID, 
+        //             timestamp: row.timestamp, 
+        //             type: row.messagetype , 
+        //             id: row.id
+        //             });
+        //         }
+        //         // {
+
+        //         //   id: 26,
+        //         //   clientOffset: 'SPBdBi8daY0MaET-AAAo-0',
+        //         //   content: 'Дмитрий@1: hello',
+        //         //   roomID: 1,
+        //         //   authorID: 1,
+        //         //   timestamp: '2025-04-08 11:07:50',
+        //         //   author_name: 'Дмитрий Малежик',
+        //         //   room_name: 'Friends'
+        //         // }
+
+        //     )
+        //     } catch (e) {
+        //     console.log(e)
+        //     }
+        // }
+        async function restoreChat(db, socket, curRoom) {
             try {
-            // await db.each('SELECT id, content FROM messages WHERE id > ? AND roomID == ?',
-            await db.each(`
+              await db.each(
+                `
                 SELECT messages.*, 
-                    users.first_name || ' ' || users.last_name AS author_name, 
-                    rooms.name AS room_name
+                       users.first_name || ' ' || users.last_name AS author_name, 
+                       rooms.name AS room_name
                 FROM messages
                 JOIN users ON messages.authorID = users.id
                 JOIN rooms ON messages.roomID = rooms.id
-                WHERE messages.id > ? AND messages.roomID = ? 
+                WHERE messages.id > ? AND messages.roomID = ?
+                ORDER BY messages.timestamp ASC
                 `,
-                // ORDER BY messages.timestamp ASC;
                 [socket.handshake.auth.serverOffset || 0, curRoom],
                 (_err, row) => {
-                // console.log(row)
-                
-                socket.emit('foo', {
-                    msg: row.content, 
-                    authorID: row.authorID, 
-                    authorName: row.author_name, 
-                    roomID: row.roomID, 
-                    timestamp: row.timestamp, 
-                    type: row.messagetype , 
-                    id: row.id
-                    });
+                  if (_err) {
+                    console.error('Error fetching messages:', _err);
+                    return;
+                  }
+          
+                  // Parse fileData JSON if exists
+                  let fileObj = null;
+                  if (row.fileData) {
+                    try {
+                      fileObj = JSON.parse(row.fileData);
+                    } catch (parseErr) {
+                      console.warn('Failed to parse fileData JSON:', parseErr);
+                    }
+                  }
+          
+                  socket.emit('foo', {
+                    msg: row.content,
+                    authorID: row.authorID,
+                    authorName: row.author_name,
+                    roomID: row.roomID,
+                    timestamp: row.timestamp,
+                    type: row.messagetype,
+                    id: row.id,
+                    file: fileObj, // will be null if none
+                  });
                 }
-                // {
-
-                //   id: 26,
-                //   clientOffset: 'SPBdBi8daY0MaET-AAAo-0',
-                //   content: 'Дмитрий@1: hello',
-                //   roomID: 1,
-                //   authorID: 1,
-                //   timestamp: '2025-04-08 11:07:50',
-                //   author_name: 'Дмитрий Малежик',
-                //   room_name: 'Friends'
-                // }
-
-            )
+              );
             } catch (e) {
-            console.log(e)
+              console.error('restoreChat error:', e);
             }
-        }
-
+          }
+          
 
     // socket.on('disconnect', () => {
     //   console.log('user disconnected');
