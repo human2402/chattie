@@ -228,6 +228,11 @@ export function setupSocket (server, db) {
                   fileDataJson
                 ]
               );
+
+              await db.run(
+                `UPDATE rooms SET last_message_time = ? WHERE id = ?`,
+                [data.timestamp, data.roomID]
+              );
           
               // Step 4: Optional notification logic
               sendNotification(
@@ -248,7 +253,10 @@ export function setupSocket (server, db) {
                 timestamp: data.timestamp,
                 type: data.type,
                 id: result.lastID,
-                file: data.file ?? null // frontend can use this directly
+                file: data.file ?? null,
+                isRead: false,
+                isEdited: false
+                // frontend can use this directly
               });
           
               callback();
@@ -306,6 +314,80 @@ export function setupSocket (server, db) {
           }
         })
 
+        socket.on('edit message', async (data, callback) => {
+          const { msg, messageID, timestamp } = data;
+
+          try {
+            // Update the message content and mark as edited
+            const result = await db.run(
+              `UPDATE messages
+               SET content = ?, isEdited = 1, editTime = ?
+               WHERE id = ?`,
+              [msg, timestamp, messageID]
+            );
+        
+            if (result.changes === 0) {
+              console.warn("No message found with ID:", messageID);
+              return callback({ error: "Message not found" });
+            }
+        
+            // Fetch the updated message for broadcasting
+            const updated = await db.get(`SELECT * FROM messages WHERE id = ?`, [messageID]);
+        
+            // Send update to all clients in the room
+            io.to(updated.roomID).emit("message updated", {
+              id: updated.id,
+              msg: updated.content,
+              isEdited: 1,
+              editTime: updated.editTime
+            });
+        
+            callback({ success: true });
+        
+          } catch (err) {
+            console.error("Error editing message:", err);
+            callback({ error: "Internal server error" });
+          }
+        })
+
+        socket.on('read messages', async (data, callback) => {
+          // inside your setupSocket(server, db) function...
+        
+          const { messageIDs } = data;
+          if (!Array.isArray(messageIDs) || messageIDs.length === 0) {
+            return callback?.({ error: "No messageIDs provided" });
+          }
+
+          try {
+            // 1. Mark all as read
+            const placeholders = messageIDs.map(() => "?").join(",");
+            await db.run(
+              `UPDATE messages
+              SET isRead = 1
+              WHERE id IN (${placeholders})`,
+              messageIDs
+            );
+
+            // 2. Find which rooms these messages belong to
+            const rooms = await db.all(
+              `SELECT DISTINCT roomID FROM messages
+              WHERE id IN (${placeholders})`,
+              messageIDs
+            );
+
+            // 3. Broadcast "messages-read" to each affected room
+            for (const { roomID } of rooms) {
+              io.to(roomID).emit("messages read", { messageIDs });
+            }
+
+            callback?.({ success: true });
+          } catch (err) {
+            console.error("Error in read messages handler:", err);
+            callback?.({ error: "Internal server error" });
+          }
+
+        })
+
 
 
         if (!socket.recovered) {
@@ -340,51 +422,7 @@ export function setupSocket (server, db) {
                 
             }
         }
-
-        // async function restoreChat (db, socket, curRoom) {
-        //     try {
-        //     // await db.each('SELECT id, content FROM messages WHERE id > ? AND roomID == ?',
-        //     await db.each(`
-        //         SELECT messages.*, 
-        //             users.first_name || ' ' || users.last_name AS author_name, 
-        //             rooms.name AS room_name
-        //         FROM messages
-        //         JOIN users ON messages.authorID = users.id
-        //         JOIN rooms ON messages.roomID = rooms.id
-        //         WHERE messages.id > ? AND messages.roomID = ? 
-        //         `,
-        //         // ORDER BY messages.timestamp ASC;
-        //         [socket.handshake.auth.serverOffset || 0, curRoom],
-        //         (_err, row) => {
-        //         // console.log(row)
-                
-        //         socket.emit('foo', {
-        //             msg: row.content, 
-        //             authorID: row.authorID, 
-        //             authorName: row.author_name, 
-        //             roomID: row.roomID, 
-        //             timestamp: row.timestamp, 
-        //             type: row.messagetype , 
-        //             id: row.id
-        //             });
-        //         }
-        //         // {
-
-        //         //   id: 26,
-        //         //   clientOffset: 'SPBdBi8daY0MaET-AAAo-0',
-        //         //   content: 'Дмитрий@1: hello',
-        //         //   roomID: 1,
-        //         //   authorID: 1,
-        //         //   timestamp: '2025-04-08 11:07:50',
-        //         //   author_name: 'Дмитрий Малежик',
-        //         //   room_name: 'Friends'
-        //         // }
-
-        //     )
-        //     } catch (e) {
-        //     console.log(e)
-        //     }
-        // }
+        
         async function restoreChat(db, socket, curRoom) {
             try {
               await db.each(
@@ -423,7 +461,9 @@ export function setupSocket (server, db) {
                     timestamp: row.timestamp,
                     type: row.messagetype,
                     id: row.id,
-                    file: fileObj, // will be null if none
+                    file: fileObj,
+                    isEdited: row.isEdited, 
+                    isRead: row.isRead
                   });
                 }
               );

@@ -67,38 +67,68 @@ export async function signInUser(login, password) {
     };
 }
 
-export async function getRoomsByUserID(userID) { 
-    return await db.all (`
-            SELECT 
-                rooms.*,                  
-                rooms.is_private,          
-                CASE 
-                    -- If it's a private chat with 2 users:
-                    WHEN rooms.is_private = 1 AND rooms.amount_of_participants = 2 THEN (
-                    SELECT u.first_name || ' ' || u.last_name 
-                    FROM users u
-                    JOIN room_members rm ON u.id = rm.user_id  
-                    WHERE rm.room_id = rooms.id AND u.id != ?  -- not the current user
-                    LIMIT 1  
-                    )
-                    -- Otherwise, just use the room's name
-                    ELSE rooms.name  
-                END AS display_name,  
+// export async function getRoomsByUserID(userID) { 
+//     return await db.all (`
+//             SELECT 
+//                 rooms.*,                  
+//                 rooms.is_private,          
+//                 CASE 
+//                     -- If it's a private chat with 2 users:
+//                     WHEN rooms.is_private = 1 AND rooms.amount_of_participants = 2 THEN (
+//                     SELECT u.first_name || ' ' || u.last_name 
+//                     FROM users u
+//                     JOIN room_members rm ON u.id = rm.user_id  
+//                     WHERE rm.room_id = rooms.id AND u.id != ?  -- not the current user
+//                     LIMIT 1  
+//                     )
+//                     -- Otherwise, just use the room's name
+//                     ELSE rooms.name  
+//                 END AS display_name,  
 
-                rooms.description,     
-                rooms.created_at       
+//                 rooms.description,     
+//                 rooms.created_at       
 
-            FROM rooms
-            JOIN room_members ON rooms.id = room_members.room_id  
-            WHERE room_members.user_id = ?;  -- <- your user ID here
-    `, userID, userID)
-    // return await db.all (`
-    //         // SELECT rooms.*
-    //         // FROM rooms
-    //         // JOIN room_members ON rooms.id = room_members.room_id
-    //         // WHERE room_members.user_id = ?;
-    // `, userID)
-}
+//             FROM rooms
+//             JOIN room_members ON rooms.id = room_members.room_id  
+//             WHERE room_members.user_id = ?;  -- <- your user ID here
+//     `, userID, userID)
+//     // return await db.all (`
+//     //         // SELECT rooms.*
+//     //         // FROM rooms
+//     //         // JOIN room_members ON rooms.id = room_members.room_id
+//     //         // WHERE room_members.user_id = ?;
+//     // `, userID)
+// }
+
+export async function getRoomsByUserID(userID) {
+    return await db.all(`
+      SELECT 
+        rooms.*,                  
+        CASE 
+          WHEN rooms.is_private = 1 AND rooms.amount_of_participants = 2 THEN (
+            SELECT u.first_name || ' ' || u.last_name 
+            FROM users u
+            JOIN room_members rm ON u.id = rm.user_id  
+            WHERE rm.room_id = rooms.id AND u.id != ? 
+            LIMIT 1  
+          )
+          ELSE rooms.name  
+        END AS display_name,  
+        rooms.description,     
+        rooms.created_at,
+        MAX(messages.timestamp) AS last_message_time
+  
+      FROM rooms
+      JOIN room_members ON rooms.id = room_members.room_id  
+      LEFT JOIN messages ON rooms.id = messages.roomID
+  
+      WHERE room_members.user_id = ?
+      GROUP BY rooms.id
+  
+      ORDER BY datetime(COALESCE(MAX(messages.timestamp), rooms.created_at)) DESC
+    `, userID, userID);
+  }
+  
 
 export async function createOrGetChatRoom(participants, name, createdBy,createdAt, isPrivate, ) {
     const participantCount = participants.length;

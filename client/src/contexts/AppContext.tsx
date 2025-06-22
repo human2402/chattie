@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 
 
 export type AppContextType = {
@@ -40,6 +40,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         amount_of_participants : 0,
         display_name :  "" 
     })
+    const [messageEditMode, setMessageEditMode] = useState({
+        editedMessageID: 0,
+        msg: ''
+    })
+
+    useEffect(() => {
+        console.log("chats", chats)
+    }, [chats])
 
     return(
         <AppContext.Provider value={{ 
@@ -47,7 +55,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
             chatRoomData, setChatRoomData,
             isCreateNewChatMenu, setCreateNewChatMenu,
             chats, setChats,
-            chatDetails, setChatDetails
+            chatDetails, setChatDetails,
+            messageEditMode, setMessageEditMode
         }}>
             {children}
         </AppContext.Provider>

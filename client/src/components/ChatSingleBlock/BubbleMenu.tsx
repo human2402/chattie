@@ -1,23 +1,32 @@
 import React, { forwardRef } from "react";
 import { useSocket } from "../../contexts/SocketContext";
+import { useAppContext } from "../../contexts/AppContext";
 
 type Props = {
   coords: { top: number; left: number };
   setMenuOpen: React.Dispatch<React.SetStateAction<boolean>>;
   index: number;
-  messageID: number
+  messageID: number,
+  msg: string
 };
 
 
 
-const BubbleMenu = forwardRef<HTMLDivElement, Props>(({ coords, setMenuOpen, index, messageID }, ref) => {
+const BubbleMenu = forwardRef<HTMLDivElement, Props>(({ coords, setMenuOpen, index, messageID, msg }, ref) => {
     const {sendEvent} = useSocket()
+    const {messageEditMode, setMessageEditMode} = useAppContext()
 
-    const handleClick = () => {
+    const handleDelete = () => {
         sendEvent("delete message", { messageID }, () => {
             console.log("Message deleted!");
           });
-          
+    }
+
+    const handleEdit = () => {
+      setMessageEditMode({
+        editedMessageID: messageID,
+        msg: msg
+      })
     }
   
   
@@ -34,7 +43,7 @@ const BubbleMenu = forwardRef<HTMLDivElement, Props>(({ coords, setMenuOpen, ind
       <button
         onClick={() => {
           setMenuOpen(false);
-          console.log("Edit message", index, messageID);
+          handleEdit()
         }}
         className="w-full text-left px-4 py-2 hover:bg-gray-100"
       >
@@ -43,7 +52,7 @@ const BubbleMenu = forwardRef<HTMLDivElement, Props>(({ coords, setMenuOpen, ind
       <button
         onClick={() => {
           setMenuOpen(false);
-          handleClick()
+          handleDelete()
         }}
         className="w-full text-left px-4 py-2 hover:bg-gray-100"
       >

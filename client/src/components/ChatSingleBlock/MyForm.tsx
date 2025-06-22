@@ -19,7 +19,7 @@ export function MyForm() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const {user} = useAuth()
-  const {chatRoomID} = useAppContext ()
+  const {chatRoomID, messageEditMode, setMessageEditMode} = useAppContext ()
   const {socket} = useSocket();
   // console.log(user) 
 
@@ -29,6 +29,13 @@ export function MyForm() {
     ta.style.height = "auto"; // reset to auto so scrollHeight recalculates
     ta.style.height = ta.scrollHeight + "px";
   }, [value]);
+
+
+  useEffect (() => {
+    if (messageEditMode.editedMessageID){
+      setValue(messageEditMode.msg)
+    }
+  }, [messageEditMode])
 
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
@@ -43,12 +50,13 @@ export function MyForm() {
       return;
     }
 
-    if (value!='' && chatRoomID!= null && user?.firstName != undefined) {
+    if (value.trim()!='' && chatRoomID!= null && user?.firstName != undefined) {
 
       const clientOffset = `${socket.id}-${counter++}`; 
   
-      socket.timeout(5000).emit(`chat message`, {
-          msg: value, 
+      if (!messageEditMode.editedMessageID){
+        socket.timeout(5000).emit(`chat message`, {
+          msg: value.trim(), 
           roomID: chatRoomID, 
           authorID: user.id, 
           authorName: authorName, 
@@ -60,11 +68,30 @@ export function MyForm() {
           console.log('Error sending message, retrying...');
           // Логика при ошибке
         }
-        setIsLoading(false);
-      });
+          setIsLoading(false);
+        });
+      } else {
+        socket.timeout(5000).emit(`edit message`, {
+          msg: value.trim(), 
+          messageID: messageEditMode.editedMessageID,
+          timestamp: timestamp, 
+          clientOffset: clientOffset,
+        }, (err: any) => {
+        if (err) {
+          console.log('Error sending message, retrying...');
+          // Логика при ошибке
+        }
+          setIsLoading(false);
+        });
+      }
+      
     } else {console.error ("Ошибка отправки")}
 
     setValue("")
+    setMessageEditMode({
+      editedMessageID: 0,
+      msg: ''
+    })
   }
 
   function onKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
@@ -97,6 +124,7 @@ export function MyForm() {
 
   return (
       <div className="sticky bottom-0 px-2 pb-2 ">
+        
         <input
           type="file"
           accept="*/*"
@@ -106,33 +134,38 @@ export function MyForm() {
         />
         <form
           onSubmit={onSubmit}
-          className="flex items-center w-full max-w-[600px] mx-auto bg-white rounded-xl custom-double-shadow"
+          className="w-full max-w-[600px] mx-auto bg-white rounded-xl custom-double-shadow"
         >
-          <CgAttachment 
-            className="m-2 text-gray-500 h-6 w-6 flex-shrink-0 cursor-pointer" 
-            onClick={() => fileInputRef.current?.click()}
-          />
 
-          {/* Auto-growing Textarea, bottom-aligned */}
-          <textarea
-            ref={textareaRef}
-            rows={1}
-            onKeyDown={onKeyDown}
-            className="resize-none overflow-y-auto grow mx-2 focus:outline-none text-baserounded-md max-h-[8rem]"
-            placeholder="Начните набирать сообщение..."
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-          />
+          {(messageEditMode.editedMessageID)?(<p className='px-3 pt-2 text-blue-600'>Редактирование сообщения:</p>):null}
 
-          <BsEmojiSmile className="m-2 text-gray-500 h-6 w-6 flex-shrink-0" />
+          <div className='flex items-center '>
+            <CgAttachment 
+              className="m-2 text-gray-500 h-6 w-6 flex-shrink-0 cursor-pointer" 
+              onClick={() => fileInputRef.current?.click()}
+            />
 
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="m-2 p-[6px] text-[#2ba6ff] rounded-xl flex-shrink-0"
-          >
-            <IoSend className="h-6 w-6" />
-          </button>
+            {/* Auto-growing Textarea, bottom-aligned */}
+            <textarea
+              ref={textareaRef}
+              rows={1}
+              onKeyDown={onKeyDown}
+              className="resize-none overflow-y-auto grow mx-2 focus:outline-none text-baserounded-md max-h-[8rem]"
+              placeholder="Начните набирать сообщение..."
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+            />
+
+            <BsEmojiSmile className="m-2 text-gray-500 h-6 w-6 flex-shrink-0" />
+
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="m-2 p-[6px] text-[#2ba6ff] rounded-xl flex-shrink-0"
+            >
+              <IoSend className="h-6 w-6" />
+            </button>
+          </div>
         </form>
       </div>
   );

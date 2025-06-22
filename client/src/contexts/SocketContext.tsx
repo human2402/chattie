@@ -3,6 +3,7 @@ import { createSocket } from '../socket.ts';
 import { useAuth } from './AuthContext';
 import { toast } from 'react-toastify';
 import { useAppContext } from './AppContext.tsx';
+import { sortChatsByActivity } from './GetTime.ts';
 
 // Type for the context value
 type SocketContextType = {
@@ -36,7 +37,7 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
   const [notifyEvents, setNotifyEvents] = useState<any[]>([]);
   const serverOffsetRef = useRef(0);
 
-  const { chatRoomID, setChatRoomID, setChatRoomData, chats } = useAppContext()
+  const { chatRoomID, setChatRoomID, setChatRoomData, chats, setChats } = useAppContext()
   const chatRoomIDRef = useRef<string | number | null>(chatRoomID);
   // console.log(chatRoomID)
 
@@ -101,13 +102,18 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
     function onFooEvent(
       newMes
     ) {
-      // console.log(newMes)
+      
       setFooEvents(prev => [...prev, newMes]);
-      // console.log(value, serverOffset)
-      // console.log(newMessage)
-      if (serverOffset !== undefined) {
-        serverOffsetRef.current = serverOffset;
-      }
+      setChats(prev =>
+        sortChatsByActivity(
+          prev.map(chat =>
+            chat.id === newMes.roomID
+              ? { ...chat, last_message_time: newMes.timestamp }
+              : chat
+          )
+        )
+      );
+      
     }
 
     function onNotification (payload: NotificationPayload) {
@@ -153,7 +159,17 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
           messageID: messageID
         }
         setNotifyEvents(prev => [newNoification,...prev])
+        setChats(prev =>
+          sortChatsByActivity(
+            prev.map(chat =>
+              chat.id === roomID
+                ? { ...chat, last_message_time: timestamp }
+                : chat
+            )
+          )
+        );
       }
+      
     }
 
     function messageUpdated (payload) {
@@ -164,11 +180,23 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
       );
     }
 
+    function messagesRead(payload: { messageIDs: number[] }) {
+      setFooEvents(prevMessages =>
+        prevMessages.map(msg =>
+          payload.messageIDs.includes(msg.id)
+            ? { ...msg, isRead: 1 }
+            : msg
+        )
+      );
+    }
+    
+
     sock.on('connect', onConnect);
     sock.on('disconnect', onDisconnect);
     sock.on('foo', onFooEvent);
     sock.on('notification', onNotification)
     sock.on('message updated', messageUpdated)
+    sock.on("messages read", messagesRead);
 
 
     sock.connect();

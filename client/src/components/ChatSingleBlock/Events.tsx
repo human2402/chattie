@@ -6,6 +6,7 @@ import { extractDate, extractTime, formatDatePlate } from '../../contexts/GetTim
 import FileBubble from './FileBubble';
 import { GiEvilComet } from 'react-icons/gi';
 import SingleBubble from './SingleBubble';
+import { useSocket } from '../../contexts/SocketContext';
 
 
 interface EventItem {
@@ -34,13 +35,32 @@ export function Events({ events }: EventsProps) {
   const {user, generateAndEncryptAESKey} = useAuth()
   const {chatRoomID} = useAppContext ()
   const bottomRef = useRef<HTMLDivElement>(null);
+  const { sendEvent } = useSocket()
     
   // console.log(events)
   // console.log(events)
   useEffect(() => {
     generateAndEncryptAESKey(2);
-
   }, []);
+
+
+  useEffect(() => {
+    if (!chatRoomID || !user) return;
+  
+    const unreadFromOthers = events
+      .filter(msg => 
+        !msg.isRead && 
+        msg.authorID !== user.id &&
+        msg.roomID.toString() == chatRoomID
+      )
+      .map(msg => msg.id);
+  
+      // console.log("unreadFromOthers", unreadFromOthers)
+    if (unreadFromOthers.length > 0) {
+      sendEvent("read messages", { messageIDs: unreadFromOthers })
+    }
+  }, [events, chatRoomID, user]);
+  
   
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });

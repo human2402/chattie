@@ -4,6 +4,9 @@ import FileBubble from "./FileBubble"
 import BubbleMenu from "./BubbleMenu"
 import { useEffect, useRef, useState } from "react"
 
+import { IoCheckmarkDoneOutline } from "react-icons/io5";
+import { IoCheckmarkOutline } from "react-icons/io5";
+
 type Props = {
     index: number,
     isCurrentUser: boolean,
@@ -61,7 +64,7 @@ const SingleBubble = ({
       function renderContent() {
         switch (event.type.trim()) {
           case "text":
-            return event.msg;
+            return <p className='break-words whitespace-pre-wrap'>{event.msg}</p>;
           case "file":
             return <FileBubble file={event.file} />;
           case "deleted":
@@ -95,7 +98,7 @@ const SingleBubble = ({
             ${isCurrentUser?"justify-end":"justify-start"}
         `} 
     >
-        {isCurrentUser&& iconButton}
+        {isCurrentUser&& ((event.type!=='deleted')&&iconButton)}
 
         <li 
             className={`
@@ -110,17 +113,26 @@ const SingleBubble = ({
                     {event.authorName}
                 </p>
             )}
-            <p className='break-words whitespace-pre-wrap'>
-              {renderContent ()}
-            </p>
-            <p className='text-right font-light text-sm text-gray-500'>
-                {extractTime( event.timestamp)}
-            </p>
+            
+            {renderContent ()}
+            
+            <div className="flex justify-end items-center">
+              <p className='text-right font-light text-sm text-gray-500 pr-1'>
+                  {extractTime( event.timestamp)}
+              </p>
+              {
+                event.isRead?
+                (<IoCheckmarkDoneOutline />):
+                (<IoCheckmarkOutline />)
+              }
+              
+              
+            </div>
 
             
         </li>
 
-        {!isCurrentUser&&iconButton}
+        {/* {!isCurrentUser&&iconButton} */}
 
         {menuOpen && (
             <BubbleMenu 
@@ -129,6 +141,7 @@ const SingleBubble = ({
                 setMenuOpen={setMenuOpen}
                 index={index}
                 messageID = {messageID}
+                msg = {event.msg}
             />
         )}
         

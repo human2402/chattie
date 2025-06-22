@@ -41,3 +41,11 @@ export default function getTimestamp(): string {
       year: "numeric",
     });
   }
+
+  export function sortChatsByActivity(chats: Chat[]): Chat[] {
+    return [...chats].sort((a, b) => {
+      const timeA = new Date(a.last_message_time || a.created_at).getTime();
+      const timeB = new Date(b.last_message_time || b.created_at).getTime();
+      return timeB - timeA;
+    });
+  }
