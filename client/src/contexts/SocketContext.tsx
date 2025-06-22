@@ -11,7 +11,8 @@ type SocketContextType = {
   fooEvents: any[];
   setFooEvents: React.Dispatch<React.SetStateAction<any[]>>;
   notifyEvents: any[], 
-  setNotifyEvents: React.Dispatch<React.SetStateAction<any[]>>
+  setNotifyEvents: React.Dispatch<React.SetStateAction<any[]>>;
+  sendEvent: (eventName: string, dataArr: any) => void;
 };
 
 
@@ -39,6 +40,21 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
   const chatRoomIDRef = useRef<string | number | null>(chatRoomID);
   // console.log(chatRoomID)
 
+
+  function sendEvent(eventName: string, dataArr: any, completeLogic: () => void) {
+    if (!socket) {
+      console.warn("Socket not ready yet");
+      return;
+    }
+
+    socket.timeout(5000).emit(eventName, dataArr, (err: any) => {
+      if (err) {
+        console.log('Error sending message, retrying...');
+        // Логика при ошибке
+      }
+      completeLogic()
+    })
+  }
   
   const { user } = useAuth(); 
 
@@ -85,10 +101,7 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
     function onFooEvent(
       newMes
     ) {
-      console.log(newMes)
-
-
-      
+      // console.log(newMes)
       setFooEvents(prev => [...prev, newMes]);
       // console.log(value, serverOffset)
       // console.log(newMessage)
@@ -139,18 +152,23 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
           timestamp: timestamp,
           messageID: messageID
         }
-  
         setNotifyEvents(prev => [newNoification,...prev])
-
       }
+    }
 
-
+    function messageUpdated (payload) {
+      setFooEvents(prevMessages =>
+        prevMessages.map(msg =>
+          msg.id === payload.id ? { ...msg, ...payload } : msg
+        )
+      );
     }
 
     sock.on('connect', onConnect);
     sock.on('disconnect', onDisconnect);
     sock.on('foo', onFooEvent);
     sock.on('notification', onNotification)
+    sock.on('message updated', messageUpdated)
 
 
     sock.connect();
@@ -191,7 +209,8 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
       socket, 
       isConnected, 
       fooEvents, setFooEvents,
-      notifyEvents, setNotifyEvents 
+      notifyEvents, setNotifyEvents ,
+      sendEvent
     }}>
       {children}
     </SocketContext.Provider>

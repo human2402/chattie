@@ -247,7 +247,7 @@ export function setupSocket (server, db) {
                 roomID: data.roomID,
                 timestamp: data.timestamp,
                 type: data.type,
-                lastID: result.lastID,
+                id: result.lastID,
                 file: data.file ?? null // frontend can use this directly
               });
           
@@ -269,6 +269,42 @@ export function setupSocket (server, db) {
         socket.on('image message',async (data, callback) => {
             await proccessMsg (data, callback)
         });
+
+        socket.on('delete message', async (data, callback) => {
+          const { messageID } = data;
+          console.log("delete-message request:", messageID);
+        
+          try {
+            const result = await db.run(
+              `UPDATE messages
+               SET messagetype = ?, content = ?, fileData = null
+               WHERE id = ?`,
+              ["deleted", "Сообщение удалено", messageID]
+            );
+        
+            if (result.changes === 0) {
+              console.warn("No message found with ID:", messageID);
+              return callback({ error: "Message not found" });
+            }
+        
+            // Notify all clients in the room about the deletion
+            const updated = await db.get(`SELECT * FROM messages WHERE id = ?`, [messageID]);
+        
+            io.to(updated.roomID).emit("message updated", {
+              id: updated.id,
+              roomID: updated.roomID,
+              authorID: updated.authorID,
+              timestamp: updated.timestamp,
+              type: "deleted",
+              msg: updated.content,
+            });
+        
+            callback({ success: true });
+          } catch (err) {
+            console.error("Error deleting message:", err);
+            callback({ error: "Internal server error" });
+          }
+        })
 
 
 

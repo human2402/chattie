@@ -5,6 +5,7 @@ import { useAppContext } from '../../contexts/AppContext';
 import { extractDate, extractTime, formatDatePlate } from '../../contexts/GetTime';
 import FileBubble from './FileBubble';
 import { GiEvilComet } from 'react-icons/gi';
+import SingleBubble from './SingleBubble';
 
 
 interface EventItem {
@@ -101,46 +102,16 @@ export function Events({ events }: EventsProps) {
                     </li>
                   )}
 
-                 {/* Message Bubble */}
-                  {isCurrentUser ? (
-                  <div className="flex w-full justify-end overflow-hidden" >
-                    <li className="shadow-md  py-2 px-4 bg-blue-100 mx-4 mb-3  w-fit max-w-[75%] rounded-2xl" key={ index }>
-                      <p className='break-words whitespace-pre-wrap'>
-                      { 
-                              event.type.trim() === "text" ? 
-                              event.msg :
-                              (<FileBubble file = {event.file} />) 
-                            }
-                      </p>
-                      <p className='text-right font-light text-sm text-gray-500'>
-                        {extractTime( event.timestamp)}
-                      </p>
-                    </li>
-                  </div>
-                  ) : (
-                    <div className="flex w-full justify-start" >
-                      <li className="shadow-md  py-2 px-4 bg-white mx-4 mb-2  w-fit max-w-[75%] rounded-2xl" key={ index }>
-                        {!isSameAuthorAsPrevious&&(
-                          <p className='text-sm text-blue-500 font-semibold'>
-                            {event.authorName}
-                          </p>
-                        )}
-                        <p className='break-words whitespace-pre-wrap'>
-                            { 
-                              event.type.trim() === "text" ? 
-                              event.msg :
-                              (<FileBubble file = {event.file} />) 
-                            }
-                        </p>
-                        <p className='text-right font-light text-sm text-gray-500'>
-                          {extractTime( event.timestamp)}
-                        </p>
-                      </li>
-                    </div>
-                  )}
+                  {/* Message Bubble */}
+                  <SingleBubble 
+                    index = {index} 
+                    isCurrentUser = {isCurrentUser}
+                    isSameAuthorAsPrevious = {isSameAuthorAsPrevious}
+                    event={event}  messageID = {event.id}
+                  />
                 </React.Fragment>
                 )
-              
+                
             })
           }
           <div ref={bottomRef} />

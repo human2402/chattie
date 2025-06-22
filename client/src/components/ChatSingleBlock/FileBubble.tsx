@@ -67,7 +67,7 @@ function FileBubble({ file }: Props) {
   };
 
   useEffect(() => {
-    console.log("Received file:", file);
+    // console.log("Received file:", file);
   }, [file]);
 
   const isImage = file.type?.startsWith("image/");
