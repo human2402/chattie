@@ -9,10 +9,22 @@ import { useSocket } from '../../contexts/SocketContext.tsx';
 import { BsEmojiSmile } from "react-icons/bs";
 import { sendFile } from '../../contexts/FetchigCool.ts';
 
+import Picker from '@emoji-mart/react'
+import data from '@emoji-mart/data'
+import ru from '../../types/ruEmojies.ts';
+
+
+
+
 let counter = 0; 
 
 export function MyForm() {
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const pickerRef = useRef(null);
+  
+  useClickOutside(pickerRef, () => setShowEmojiPicker(false));
 
   const [value, setValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -22,6 +34,20 @@ export function MyForm() {
   const {chatRoomID, messageEditMode, setMessageEditMode} = useAppContext ()
   const {socket} = useSocket();
   // console.log(user) 
+
+  function useClickOutside(ref, onClickOutside) {
+    useEffect(() => {
+      function handleClickOutside(event) {
+        if (ref.current && !ref.current.contains(event.target)) {
+          onClickOutside();
+        }
+      }
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }, [ref, onClickOutside]);
+  }
 
   useEffect (() => {
     const ta = textareaRef.current;
@@ -154,9 +180,13 @@ export function MyForm() {
               placeholder="Начните набирать сообщение..."
               value={value}
               onChange={(e) => setValue(e.target.value)}
+              onClick={() => setShowEmojiPicker(prev => !prev)}
             />
 
-            <BsEmojiSmile className="m-2 text-gray-500 h-6 w-6 flex-shrink-0" />
+            <BsEmojiSmile 
+              className="m-2 text-gray-500 h-6 w-6 flex-shrink-0" 
+              onClick={() => setShowEmojiPicker(prev => !prev)}
+            />
 
             <button
               type="submit"
@@ -165,7 +195,20 @@ export function MyForm() {
             >
               <IoSend className="h-6 w-6" />
             </button>
+            {showEmojiPicker && (
+              <div ref={pickerRef} className="absolute bottom-16 right-2 z-50">
+                <Picker 
+                  onEmojiSelect={(emoji) => setValue(prev => prev + emoji.native)} 
+                  data={data} 
+                  theme="light"
+                  locale="ru"
+                  i18n={ru}
+                />
+              </div>
+            )}
+
           </div>
+          
         </form>
       </div>
   );
