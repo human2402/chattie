@@ -139,3 +139,39 @@ router.post("/rooms", async (req, res) => {
     }
     
 })
+
+router.post("/users/:id/reset-password", authenticate, async (req, res) => {
+    const userID = req.params.id;
+    const { newPassword } = req.body;
+
+    if (!newPassword) {
+        return res.status(400).json({ error: "New password is required" });
+    }
+
+    try {
+        await models.resetPassword(userID, newPassword);
+        res.status(200).json({ message: "Password reset successfully" });
+    } catch (error) {
+        res.status(401).json({ error: error.message });
+    }
+});
+
+router.post("/users/:id/change-password", authenticate, async (req, res) => {
+    const userID = req.params.id;
+    const { oldPassword, newPassword } = req.body;
+
+    if (!oldPassword || !newPassword) {
+        return res.status(400).json({ error: "Old password and new password are required" });
+    }
+
+    if (userID != req.userFromJWT.id) {
+        return res.status(403).json({ error: "Cannot change another user's password" });
+    }
+
+    try {
+        await models.updatePassword(userID, oldPassword, newPassword);
+        res.status(200).json({ message: "Password updated successfully" });
+    } catch (error) {
+        res.status(401).json({ error: error.message });
+    }
+});

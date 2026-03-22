@@ -67,6 +67,17 @@ export async function signInUser(login, password) {
     };
 }
 
+export async function updatePassword(id, oldPassword, newPassword) {
+    const user = await db.get("SELECT password FROM users WHERE id = ?", [id]);
+    if (!user) throw new Error("User not found");
+
+    const isPasswordValid = await bcrypt.compare(oldPassword, user.password);
+    if (!isPasswordValid) throw new Error("Current password is incorrect");
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    return await db.run("UPDATE users SET password = ? WHERE id = ?", [hashedPassword, id]);
+}
+
 // export async function getRoomsByUserID(userID) { 
 //     return await db.all (`
 //             SELECT 
@@ -210,4 +221,9 @@ export async function getParticipantsByRoomID(roomID) {
     return { 
         participants
     };
+}
+
+export async function resetPassword(id, newPassword) {
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    return await db.run("UPDATE users SET password = ? WHERE id = ?", [hashedPassword, id]);
 }
