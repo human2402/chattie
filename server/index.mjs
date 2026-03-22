@@ -5,6 +5,7 @@ import { router } from "./routes.mjs";
 import { setupSocket } from './socket.mjs';
 import multer from 'multer';
 import path from 'path';
+import cors from 'cors';
 
 
 const storage = multer.diskStorage({
@@ -19,6 +20,7 @@ const upload = multer({ storage });
 
 
 const app = express();
+app.use(cors()); // Disable CORS - allows all origins
 app.use(express.json());
 app.use("/api", router);
 app.use('/uploads', express.static('uploads'));
@@ -36,7 +38,7 @@ app.post('/api/upload-file', upload.single('file'), (req, res) => {
   res.json({ success: true, url: fileUrl });
 });
 
-const portn = 3000  
+const portn = process.env.PORT || 3000;  
 server.listen(portn, () => {
   console.log('listening on *:'+portn);
 });
