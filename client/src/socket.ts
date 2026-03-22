@@ -2,6 +2,7 @@ import { io, Socket  } from 'socket.io-client';
 
 // "undefined" means the URL will be computed from the `window.location` object
 const URL: string | undefined = process.env.NODE_ENV === 'production' ? undefined : 'http://localhost:3000';
+const API_URL = import.meta.env.VITE_API_URL;
 
 
 let socket: Socket | null = null;
@@ -10,7 +11,7 @@ export function createSocket(userID, serverOffset,): Socket {
 
     // const user = JSON.parse(localStorage.getItem("user") || "{}");
     // console.log(user.id,)
-    socket = io(URL, {
+    socket = io(API_URL, {
         // auth: {
         //     // userID: userID,
         //     userID: user.id,
