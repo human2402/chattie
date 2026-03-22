@@ -31,7 +31,7 @@ function ChatCreate({setCreateNewChatMenu}: Props) {
     //     setUsers(val.filter(userf => userf.id != user.id))
     // }
     useEffect(() => {
-            const url = "/api/users/"+user?.id
+            const url = import.meta.env.VITE_API_URL + "/api/users/" + user?.id
             fetchGetCool(url, setUsers, setError, setIsLoading);
         }, []);
 
@@ -52,7 +52,7 @@ function ChatCreate({setCreateNewChatMenu}: Props) {
                 is_private: isPrivate
             }
     
-            const res = await fetchPostCool(newData, "/api/rooms", setError, setIsLoading)
+            const res = await fetchPostCool(newData, import.meta.env.VITE_API_URL + "/api/rooms", setError, setIsLoading)
             setNameValue("")
             console.log("Response", res)
             if (res) {

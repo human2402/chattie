@@ -184,7 +184,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   
     // ⬆️ Upload public key to server
     try {
-      const res = await fetch(`/api/users/${currentUserId}/public-key`, {
+      const res = await fetch(import.meta.env.VITE_API_URL + `/api/users/${currentUserId}/public-key`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

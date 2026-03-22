@@ -68,7 +68,7 @@ function ChatRoomsList({searchInputValue}: Props) {
     useEffect(() => {
         const fetchChats = async () => {
             try {
-                const response = await fetch("/api/users/rooms/"+user.id, {
+                const response = await fetch(import.meta.env.VITE_API_URL + "/api/users/rooms/" + user.id, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",

@@ -9,10 +9,13 @@ export default defineConfig({
     tailwindcss()
   ],
   server: {
-    proxy: {
-      "/api": "http://localhost:3000", // Proxy backend requests
-      "/uploads": "http://localhost:3000"
-    },
+    // proxy: {
+    //   "/api": "http://localhost:3000", // Proxy backend requests
+    //   "/uploads": "http://localhost:3000"
+    // },
   },
+  esbuild: {
+    logOverride: { 'this-is-undefined-in-esm': 'silent' }
+  }
   
 })

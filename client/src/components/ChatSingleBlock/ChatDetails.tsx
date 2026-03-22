@@ -23,7 +23,7 @@ function ChatDetails({}: Props) {
     const [loading, setLoading] = useState <boolean> (true)
 
     useEffect(() => {
-        fetchGetCool("/api/rooms/"+chatDetails+"/participants",setFetchedDeets,setError, setLoading)
+        fetchGetCool(import.meta.env.VITE_API_URL + "/api/rooms/" + chatDetails + "/participants", setFetchedDeets, setError, setLoading);
     }, []);
 
     useEffect(() => {

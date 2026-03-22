@@ -162,7 +162,7 @@ export async function sendFile(
     formData.append('authorID', String(userID));
   
     try {
-      const res = await fetch('/api/upload-file', {
+      const res = await fetch(import.meta.env.VITE_API_URL + '/api/upload-file', {
         method: 'POST',
         body: formData,
       });
