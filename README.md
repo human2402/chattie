@@ -6,7 +6,7 @@
 
 ## [Ссылка на Vercel](chattie-humanholder.vercel.app)
 
-![GIF Preview]()
+![GIF Preview](https://github.com/human2402/chattie/blob/master/Preview.gif?raw=true)
 
 [Видео на ВК Видео](https://vkvideo.ru/video-237193308_456239017) 
 
